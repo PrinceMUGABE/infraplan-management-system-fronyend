@@ -1,5 +1,6 @@
+// eslint-disable-next-line no-unused-vars
 import React from "react";
-import hero from "../../assets/police_image/helo_lili.jpeg";
+import hero from "../../assets/pictures/hand-thumb-up-rwanda.png";
 
 const Hero = () => {
   return (
@@ -14,11 +15,11 @@ const Hero = () => {
               alt=""
               className="w-full sm:max-w-[280px] md:max-w-[430px]"
             />
-            <div
+            {/* <div
               data-aos="slide-right"
               className="absolute -bottom-5 -right-8 px-4 py-2 rounded-xl bg-white dark:bg-gray-900 dark:text-white shadow-md"
             >
-            </div>
+            </div> */}
           </div>
 
           {/* Text section */}
@@ -28,22 +29,22 @@ const Hero = () => {
               className="text-4xl sm:text-5xl font-semibold"
               style={{ lineHeight: 1.2 }}
             >
-              Get in tourch with updated police{" "}
-              <span className="text-primary">Policy M.System</span>
+              Get in tourch with updated Policy{" "}
+              <span className="text-primary">Rwanda Single portal Policy Access</span>
             </h1>
             <p data-aos="fade-up" data-aos-delay="300">
-             Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-             Ad distinctio dignissimos ea eum, tenetur id ullam ex doloremque enim, 
-             aspernatur vitae quam modi sequi velit libero nemo maiores in voluptatum.
+              Policy Link Rwanda is a centralized system designed to collect and organize
+               policies from various institutions across Rwanda, ensuring easy access, 
+               consistency, and streamlined policy management for all stakeholders.
             </p>
-            <button
+            {/* <button
               data-aos="fade-up"
               data-aos-delay="500"
               data-aos-offset="0"
               className="primary-btn"
             >
               Learn More
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

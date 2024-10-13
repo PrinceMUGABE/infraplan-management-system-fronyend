@@ -11,7 +11,6 @@ import { FaUniversity } from "react-icons/fa";
 import { MdOutlinePolicy } from "react-icons/md";
 import { FcDepartment } from "react-icons/fc";
 import { FaCommentDots } from "react-icons/fa";
-import { FaDiagramProject } from "react-icons/fa6";
 
 function Sidebar() {
   const [activeLink, setActiveLink] = useState(null);
@@ -29,14 +28,10 @@ function Sidebar() {
   const Sidebar_Links = [
     { id: 1, name: 'Dashboard', path: '/admin', icon: <MdDashboard /> },
     { id: 2, name: 'Users', path: '/admin/users', icon: <FaUsers /> },
-    { id: 3, name: 'Project Planners', path: '/admin/planners', icon: <FaUsers /> },
-    { id: 4, name: 'Technicians', path: '/admin/engineers', icon: <FaUsers /> },
-    { id: 5, name: 'Stakeholders', path: '/admin/stakeholders', icon: <FaUsers /> },
-
-
-    { id: 6, name: 'Projects', path: '/admin/projects', icon: <FaDiagramProject />},
-    { id: 6, name: 'Planned Projects', path: '/admin/plannedProjects', icon: <FaDiagramProject />},
-    { id: 6, name: 'Projects under Implementations', path: '/admin/projects', icon: <FaDiagramProject />},
+    { id: 3, name: 'Project Owners', path: '/admin/project_owners', icon: <FaUsers /> },
+    { id: 4, name: 'Project Planners', path: '/admin/planners', icon: <FaUsers /> },
+    { id: 5, name: 'Technicians', path: '/admin/engineers', icon: <FaUsers /> },
+    { id: 6, name: 'Project Planners', path: '/admin/planners', icon: <FaUsers /> },
 
     
   ];
@@ -59,17 +54,32 @@ function Sidebar() {
                 <span className=' text-indigo-500'>{link.icon}</span>
                 <span className='text-sm text-gray-500 md:flex hidden'>{link.name}</span>
               </Link>
-
+              {/* {link.children && (
+                <span className='md:flex hidden'>
+                  {isInstitutionOpen ? <IoIosArrowDown /> : <IoIosArrowForward />}
+                </span>
+              )} */}
             </div>
           </div>
-
+          {/* {link.children && isInstitutionOpen && (
+            <ul className='ml-8 space-y-3 mt-2'>
+              {link.children.map((child, childIndex) => (
+                <li key={childIndex} className='font-medium rounded-md py-2 px-5 hover:bg-gray-100 hover:text-indigo-500'>
+                  <Link to={child.path} className='flex items-center space-x-5'>
+                    <span className=' text-indigo-500'>{child.icon}</span>
+                    <span className='text-sm text-gray-500'>{child.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )} */}
         </li>
       ))}
     </ul>
     <div className='w-full absolute bottom-5 left-0 px-4 py-4 text-center cursor-pointer'>
-      {/* <p className='flex space-x-2 text-xs text-white py-2 px-5 bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full'>
+      <p className='flex space-x-2 text-xs text-white py-2 px-5 bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full'>
         <span>?</span><span>Need help</span>
-      </p> */}
+      </p>
     </div>
   </div>
   );

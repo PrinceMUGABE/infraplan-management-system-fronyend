@@ -1,146 +1,188 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LockClosedIcon } from '@heroicons/react/20/solid';
-// import DarkMode from "../Navbar/DarkMode";
-
+import { LockClosedIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/20/solid';
+import axios from 'axios';
+import loginImage from '../../assets/pictures/login.jpeg'; // Assuming the path to the image
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  });
-  const [error, setError] = useState(null);
-  const [userData, setUserData] = useState(null); 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('https://api.uzi.ishemahub.com/api/v1/user/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        const userData = await response.json();
-        const token = userData.access_token;
-        localStorage.setItem('token', token);
-        
-        // Store user data in state
-        setUserData(userData.user);
-        console.log('userData:', userData);
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility toggle
+  const [isLoading, setIsLoading] = useState(false); // State for loading
 
-        if (userData.user.role === 'admin') {
-          navigate('/dashboard', { state: { userData } });
-          console.log(userData);
-        } else if (userData.user.role === 'student') {
-          navigate('/studentdashboard', { state: { userData } });
-          console.log(userData);
-        } else {
-          setError('Unknown role received from the server');
-        }
-      } else if (response.status === 401) {
-        setError('Invalid username or password');
-      } else {
-        setError('Failed to log in. Please try again later.');
-      }
-    } catch (error) {
-      console.error('Error during signin:', error);
-      setError('An unexpected error occurred');
+  // Updated phone validation function
+  const validatePhone = (phone) => {
+    const phoneRegex = /^(078|079|072|073)\d{7}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validatePassword = (password) => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const isValidLength = password.length >= 8;
+
+    return hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar && isValidLength;
+  };
+
+  const handlePhoneInputChange = (e) => {
+    const input = e.target.value;
+
+    // Only allow numbers in the input
+    if (/^\d*$/.test(input)) {
+      setPhone(input);
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!validatePhone(phone)) {
+        setError('Phone number must start with 078, 079, 072, or 073 and be exactly 10 digits.');
+        return;
+    }
+
+    if (!validatePassword(password)) {
+        setError('Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one digit, and one special character.');
+        return;
+    }
+
+    setIsLoading(true); // Set loading state
+
+    axios.post('http://127.0.0.1:8000/login/', {
+        phone: phone,
+        password: password
+    })
+    .then((res) => {
+        setIsLoading(false); // Stop loading
+
+        if (res.data) {
+            const user = {
+                id: res.data.user.id,
+                name: res.data.user.username,
+                phone: res.data.user.phone,
+                role: res.data.user.role,
+                created_at: res.data.user.created_at,
+                refresh: res.data.refresh,
+                access: res.data.access,
+            };
+
+            localStorage.setItem('userData', JSON.stringify(user));
+            localStorage.setItem('token', res.data.access);
+
+            if (user.role.trim().toLowerCase() === 'admin') {
+                navigate('/admin');
+            } else {
+                console.log('Unknown user role. Please contact support.');
+            }
+        } else {
+            console.log("No data");
+        }
+    })
+    .catch((error) => {
+        setIsLoading(false); // Stop loading
+        console.error('Error during login:', error);
+        setError('Invalid phone or password.');
+    });
   };
 
   return (
-    <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white ">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="mt-10 text-center text-xl font-semibold leading-9 tracking-tight text-gray-900">
-            Welcome Back
-          </h2>
+    <div className="flex justify-center items-center min-h-screen h-full bg-gray-50">
+      <div className="grid lg:grid-cols-2 rounded-lg shadow-xl w-full max-w-4xl overflow-hidden">
+        <div className="hidden lg:block">
+          <img src={loginImage} alt="Login" className="object-cover w-full h-full" />
         </div>
-        <small className=' mt-1.5 text-center'>Sign in to your account</small>
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
-                Username
-              </label>
-              <div className="mt-2">
+
+        <div className="flex items-center justify-center bg-white py-6 px-6 lg:px-8 w-full">
+          <div className="sm:max-w-md w-full">
+            <h2 className="mt-3 text-center text-2xl font-bold text-gray-900">Login here</h2>
+            <p className="mt-2 text-center text-sm text-gray-600">Sign in to your account</p>
+
+            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+
+            <form className="mt-8 space-y-2" onSubmit={handleLogin}>
+              {/* Phone */}
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
                 <input
-                  id="username"
-                  name="username"
+                  id="phone"
+                  name="phone"
                   type="text"
-                  autoComplete="username"
+                  value={phone}
+                  onChange={handlePhoneInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900"
                   required
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
-                  Password
-                </label>
-                <div className="text-sm">
-                  <a href="password_reset" className="font-semibold text-indigo-600 hover:text-indigo-500">
+
+              {/* Password */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                  <Link to="/passwordreset" className="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
                     Forgot password?
-                  </a>
+                  </Link>
+                </div>
+                <div className="mt-1 relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    className="block w-full rounded-md border border-gray-300 p-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-slate-900"
+                    required
+                  />
+                  <span
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                    )}
+                  </span>
                 </div>
               </div>
-              <div className="mt-2">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                />
+
+              {/* Submit Button */}
+              <div>
+                <button
+                  type="submit"
+                  className="group relative flex w-full justify-center rounded-md bg-purple-500 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  disabled={isLoading}
+                >
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                    {isLoading ? (
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                      </svg>
+                    ) : (
+                      <LockClosedIcon className="h-5 w-5 text-purple-400 group-hover:text-indigo-400" aria-hidden="true" />
+                    )}
+                  </span>
+                  {isLoading ? 'Signing In...' : 'Sign In'}
+                </button>
               </div>
-            </div>
-            <div>
-              <button
-                type="submit"
-                className="group relative flex w-full justify-center rounded-md bg-purple-500 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                <span className='absolute inset-y-0 left-0 flex items-center pl-3'>
-                  <LockClosedIcon className='h-5 w-5 text-purple-400 group-hover:text-indigo-400 aria-hidden:true ' />
-                </span>
-                Sign In
-              </button>
-            </div>
-          </form>
-          {error && <p className="mt-4 text-center text-red-500">{error}</p>}
-          {userData && (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold">Logged In User Details:</h3>
-              <p>Username: {userData.username}</p>
-              <p>Email: {userData.email}</p>
-              {/* Add more user data fields here as needed */}
-            </div>
-          )}
-          <p className="mt-10 text-center text-sm text-gray-500">
-            Not a member?{' '}
-            <Link to="/signup" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
-              Sign Up
-            </Link>
-            <Link to="/" className="primary-btn ml-2"> Back home </Link>
-          </p>
+            </form>
+
+            <p className="mt-10 text-center text-sm text-gray-500">
+              Not a member?{' '}
+              <Link to="/signup" className="font-semibold text-indigo-600 hover:text-indigo-500">Sign Up</Link>
+            </p>
+          </div>
         </div>
       </div>
-    </>
-  )
-}
+    </div>
+  );
+};
 
 export default Login;
-

@@ -25,13 +25,7 @@ const Header = () => {
         {/* <p className="text-xl text-black font-semibold">{username}</p> */}
       </div>
       <div className="flex items-center space-x-5">
-        {/* <div className="hidden md:flex">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-indigo-100/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-          />
-        </div> */}
+    
         {/* <div className="relative">
           <button className="relative text-gray-600">
             <GoBell size={28} />
@@ -55,7 +49,7 @@ const Header = () => {
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
                   {/* <Link
-                    to="/admin/profile"
+                    to="/organizer/profile"
                     className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
                   >
                     Profile
@@ -69,7 +63,7 @@ const Header = () => {
                 </div>
               )}
             </div>
-            {/* <p>{username}</p> */}
+            <p>{username}</p>
           </div>
         </div>
       </div>

@@ -4,9 +4,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import loginImage from "../../assets/pictures/login.jpeg";
 
-const Register = () => {
+const AdminCreateUser = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     first_name: "",
@@ -123,13 +122,7 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="flex w-full max-w-4xl mx-auto shadow-lg rounded-lg overflow-hidden">
         {/* Image container */}
-        <div className="hidden md:block w-1/2">
-          <img
-            src={loginImage}
-            alt="login"
-            className="w-full h-full object-cover"
-          />
-        </div>
+
 
         {/* Form container */}
         <div className="w-full md:w-1/2 bg-white p-8">
@@ -377,4 +370,4 @@ const Register = () => {
     </div>
   );
 };
-export default Register;
+export default AdminCreateUser;

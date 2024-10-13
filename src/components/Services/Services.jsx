@@ -5,7 +5,7 @@ import { SlNote } from "react-icons/sl";
 
 const skillsData = [
   {
-    name: "Updated Police",
+    name: "Updated Policy",
     icon: <FaCameraRetro className="text-4xl text-primary" />,
     link: "#",
     description:
@@ -13,7 +13,7 @@ const skillsData = [
     aosDelay: "0",
   },
   {
-    name: "Updated Police",
+    name: "Updated Policy",
     icon: <GiNotebook className="text-4xl text-primary" />,
     link: "#",
     description:
@@ -21,7 +21,7 @@ const skillsData = [
     aosDelay: "300",
   },
   {
-    name: "Updated Police",
+    name: "Updated Policy",
     icon: <SlNote className="text-4xl text-primary" />,
     link: "#",
     description:
@@ -29,7 +29,7 @@ const skillsData = [
     aosDelay: "500",
   },
   {
-    name: "Updated Police",
+    name: "Updated Policy",
     icon: <SlNote className="text-4xl text-primary" />,
     link: "#",
     description:
@@ -81,14 +81,14 @@ const Services = () => {
           </div>
 
           {/* button */}
-          <div
+          {/* <div
             data-aos="fade-up"
             data-aos-delay="900"
             data-aos-offset="0"
             className="text-center mt-4 sm:mt-8"
           >
             <button className="primary-btn">Learn More</button>
-          </div>
+          </div> */}
         </div>
       </div>
 

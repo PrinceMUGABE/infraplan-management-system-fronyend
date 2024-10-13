@@ -1,7 +1,8 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import { HiMenuAlt3, HiMenuAlt1 } from "react-icons/hi";
 import ResponsiveMenu from "./ResponsiveMenu";
-import Logo from "../../assets/police_image/logo_lil.jpeg";
+import Logo from "../../assets/pictures/logo_lil.jpeg";
 import DarkMode from "./DarkMode";
 import { Link } from "react-router-dom";
 
@@ -16,11 +17,11 @@ export const MenuLinks = [
     name: "About",
     link: "/#about",
   },
-  {
-    id: 3,
-    name: "Services",
-    link: "/#services",
-  },
+  // {
+  //   id: 3,
+  //   name: "Services",
+  //   link: "/#services",
+  // },
   {
     id: 4,
     name: "Contact",
@@ -65,7 +66,6 @@ const Navbar = () => {
                 </li>
               ))}
               <Link to="/login" className="primary-btn">Login</Link>
-              <Link to="/admin" className="primary-btn">Dashboard</Link>
               <DarkMode />
             </ul>
           </nav>

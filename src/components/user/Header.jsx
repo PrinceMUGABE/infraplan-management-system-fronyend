@@ -1,5 +1,7 @@
+/* eslint-disable no-unused-vars */
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
-import { GoBell } from "react-icons/go";
+// import { GoBell } from "react-icons/go";
 import { Link } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 
@@ -25,13 +27,6 @@ const Header = () => {
         {/* <p className="text-xl text-black font-semibold">{username}</p> */}
       </div>
       <div className="flex items-center space-x-5">
-        {/* <div className="hidden md:flex">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-indigo-100/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-          />
-        </div> */}
         {/* <div className="relative">
           <button className="relative text-gray-600">
             <GoBell size={28} />
@@ -69,7 +64,7 @@ const Header = () => {
                 </div>
               )}
             </div>
-            {/* <p>{username}</p> */}
+            {/* <p className="text-black">{username}</p> */}
           </div>
         </div>
       </div>
