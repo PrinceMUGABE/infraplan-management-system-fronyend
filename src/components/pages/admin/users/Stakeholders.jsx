@@ -120,19 +120,21 @@ function ManageStakeholders() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Handle new planner form submission
-  const handleCreatePlanner = async (e) => {
+  // Handle new stakeholder form submission
+  // Handle new stakeholder form submission with JSON payload
+  const handleCreateStakeholder = async (e) => {
     e.preventDefault();
     setErrorMessage(""); // Clear previous error message
-
-    const formData = new FormData();
-    formData.append("userId", newPlanner.userId);
-    formData.append("email", newPlanner.email);
-    formData.append("address", newPlanner.address);
-    formData.append("monthly_income", newPlanner.monthly_income);
-
+  
+    const payload = {
+      userId: newPlanner.userId,
+      email: newPlanner.email,
+      address: newPlanner.address,
+      monthly_income: newPlanner.monthly_income,
+    };
+  
     try {
-      const res = await axios.post("http://127.0.0.1:8000/stakeholder/create/", formData, axiosConfig);
+      const res = await axios.post("http://127.0.0.1:8000/stakeholder/create/", payload, axiosConfig);
       if (res.status === 201) {
         alert("Stakeholder created successfully!");
         setShowCreateForm(false);
@@ -141,19 +143,22 @@ function ManageStakeholders() {
       }
     } catch (err) {
       console.error("Error creating planner:", err);
-      // Handle different error responses
+  
+      // Handle error responses and categorize them
       if (err.response) {
-        if (err.response.data) {
-          const errorMessages = Object.values(err.response.data).flat(); // Flatten error messages array
-          setErrorMessage(errorMessages.join(", ")); // Set error messages to state
+        if (err.response.status === 400) {
+          // Handle user-specific errors (e.g., already has a stakeholder account)
+          setErrorMessage(err.response.data.detail || "You have already created a stakeholder account.");
         } else {
-          setErrorMessage("An unexpected error occurred."); // Fallback message
+          // General fallback error message
+          setErrorMessage("An unexpected error occurred while creating the stakeholder.");
         }
       } else {
         setErrorMessage("Failed to connect to the server. Please try again later.");
       }
     }
   };
+  
 
   return (
     <>
@@ -191,61 +196,67 @@ function ManageStakeholders() {
       </div>
 
       {showCreateForm && (
-        <form onSubmit={handleCreatePlanner} className="mb-4 p-4 border rounded bg-white shadow-md max-w-md mx-auto">
-          <h2 className="text-black font-bold mb-2">Create New Stakeholder</h2>
-          {errorMessage && <div className="text-red-600 mb-2">{errorMessage}</div>} {/* Display error message */}
-          <div className="mb-4">
-            <label className="block text-gray-700">Select User</label>
-            <select
-              value={newPlanner.userId}
-              onChange={(e) => setNewPlanner({ ...newPlanner, userId: e.target.value })}
-              required
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-            >
-              <option value="">Select a user</option>
-              {Array.isArray(users) && users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.phone} {/* Displaying the user's phone number */}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
-            <input
-              type="email"
-              value={newPlanner.email}
-              onChange={(e) => setNewPlanner({ ...newPlanner, email: e.target.value })}
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Address</label>
-            <input
-              type="text"
-              value={newPlanner.address}
-              onChange={(e) => setNewPlanner({ ...newPlanner, address: e.target.value })}
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Monthly Income</label>
-            <input
-              type="number"
-              value={newPlanner.monthly_income}
-              onChange={(e) => setNewPlanner({ ...newPlanner, monthly_income: e.target.value })}
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-              required
-            />
-          </div>
+  <form onSubmit={handleCreateStakeholder} className="mb-4 p-4 border rounded bg-white shadow-md max-w-md mx-auto">
+    <h2 className="text-black font-bold mb-2">Create New Stakeholder</h2>
+    
+    {/* Display error message */}
+    {errorMessage && <div className="text-red-600 mb-2">{errorMessage}</div>}
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">Select User</label>
+      <select
+        value={newPlanner.userId}
+        onChange={(e) => setNewPlanner({ ...newPlanner, userId: e.target.value })}
+        required
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+      >
+        <option value="">Select a user</option>
+        {Array.isArray(users) && users.map((user) => (
+          <option key={user.id} value={user.id}>
+            {user.phone}
+          </option>
+        ))}
+      </select>
+    </div>
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">Email</label>
+      <input
+        type="email"
+        value={newPlanner.email}
+        onChange={(e) => setNewPlanner({ ...newPlanner, email: e.target.value })}
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+        required
+      />
+    </div>
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">Address</label>
+      <input
+        type="text"
+        value={newPlanner.address}
+        onChange={(e) => setNewPlanner({ ...newPlanner, address: e.target.value })}
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+        required
+      />
+    </div>
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">Monthly Income</label>
+      <input
+        type="number"
+        value={newPlanner.monthly_income}
+        onChange={(e) => setNewPlanner({ ...newPlanner, monthly_income: e.target.value })}
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+        required
+      />
+    </div>
 
-          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-            Create Stakeholder
-          </button>
-        </form>
-      )}
+    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
+      Create Stakeholder
+    </button>
+  </form>
+)}
 
       <div className="overflow-x-auto">
         <table

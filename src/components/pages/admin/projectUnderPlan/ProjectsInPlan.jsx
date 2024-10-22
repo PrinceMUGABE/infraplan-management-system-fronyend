@@ -19,10 +19,12 @@ function ManageProjectsInPlan() {
   });
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [planDetails, setPlanDetails] = useState(null);
+  const [editingProject, setEditingProject] = useState(null);
 
   const accessToken = JSON.parse(localStorage.getItem("userData"))?.access;
 
-  // Fetch all planned projects
   const handleFetch = async () => {
     try {
       const response = await fetch("http://127.0.0.1:8000/planned/projects/", {
@@ -38,28 +40,23 @@ function ManageProjectsInPlan() {
     }
   };
 
-  // Fetch unplanned projects for the dropdown
-  // Fetch unplanned projects for the dropdown
-const fetchUnplannedProjects = async () => {
-  try {
-    const response = await fetch("http://127.0.0.1:8000/project/projects/", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    const data = await response.json();
+  const fetchUnplannedProjects = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/project/projects/", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = await response.json();
+      const unplannedProjects = data.filter(
+        (project) => project.status === "un_planned"
+      );
+      setUnplannedProjects(unplannedProjects);
+    } catch (err) {
+      console.error("Error fetching unplanned projects:", err);
+    }
+  };
 
-    // Assuming the status field is 'status' and 'unplanned' projects have a specific status value like 'unplanned'
-    const unplannedProjects = data.filter((project) => project.status === "un_planned");
-    
-    setUnplannedProjects(unplannedProjects);
-  } catch (err) {
-    console.error("Error fetching unplanned projects:", err);
-  }
-};
-
-
-  // Fetch available planners for the dropdown
   const fetchPlanners = async () => {
     try {
       const response = await fetch("http://127.0.0.1:8000/planner/planners/", {
@@ -80,19 +77,23 @@ const fetchUnplannedProjects = async () => {
     fetchPlanners();
   }, []);
 
-  // Handle delete project
   const handleDelete = async (id) => {
     const conf = window.confirm("Do you want to delete this project?");
     if (conf) {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/planned/delete/${id}/`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const response = await fetch(
+          `http://127.0.0.1:8000/planned/delete/${id}/`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
         if (response.status === 204) {
-          setProjectData((prevProjectData) => prevProjectData.filter((project) => project.id !== id));
+          setProjectData((prevProjectData) =>
+            prevProjectData.filter((project) => project.id !== id)
+          );
         } else {
           alert("Failed to delete project");
         }
@@ -103,25 +104,22 @@ const fetchUnplannedProjects = async () => {
     }
   };
 
-  // Handle search input
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
 
-  // Handle project plan form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewProjectPlan({ ...newProjectPlan, [name]: value });
   };
 
-  // Handle file input for image upload
   const handleFileChange = (e) => {
     setNewProjectPlan({ ...newProjectPlan, file: e.target.files[0] });
   };
 
-  // Handle creating a new project plan
   const handleCreateProjectPlan = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
 
     const formData = new FormData();
     formData.append("project", newProjectPlan.project);
@@ -129,7 +127,7 @@ const fetchUnplannedProjects = async () => {
     formData.append("duration", newProjectPlan.duration);
     formData.append("cost", newProjectPlan.cost);
     formData.append("location", newProjectPlan.location);
-    formData.append("file", newProjectPlan.file); // Image file
+    formData.append("file", newProjectPlan.file);
 
     try {
       const response = await fetch("http://127.0.0.1:8000/planned/create/", {
@@ -139,28 +137,64 @@ const fetchUnplannedProjects = async () => {
         },
         body: formData,
       });
+
       if (response.ok) {
         const newProject = await response.json();
         setProjectData((prevData) => [...prevData, newProject]);
         setShowCreateForm(false);
       } else {
-        console.error("Failed to create project plan");
+        const errorData = await response.json();
+        setErrorMessage(
+          errorData.error || "An error occurred while creating the project."
+        );
       }
     } catch (error) {
+      setErrorMessage("An unexpected error occurred. Please try again.");
       console.error("Error creating project plan:", error);
     }
   };
 
-  // Filter project data based on search query
-  const filteredData = projectData.filter(
-    (project) =>
-      project.project.field.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.project.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const fetchPlanDetails = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/planned/${id}/`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch plan details");
+      const data = await response.json();
+      setPlanDetails(data);
+      setShowDetailsModal(true); // Show modal after fetching details
+    } catch (err) {
+      console.error("Error fetching plan details:", err);
+    }
+  };
+
+  const handleEditClick = (project) => {
+    setNewProjectPlan({
+      project: project.project.id,
+      planner: project.planned_by.id,
+      duration: project.duration,
+      cost: project.cost,
+      location: project.location,
+      file: null, // Reset file on edit
+    });
+    setShowCreateForm(true);
+    setEditingProject(project.id); // Set the current project id to edit
+  };
+
+  const filteredData = projectData.filter((project) =>
+    project.project.description
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
   );
 
   const indexOfLastProject = currentPage * projectsPerPage;
   const indexOfFirstProject = indexOfLastProject - projectsPerPage;
-  const currentProjects = filteredData.slice(indexOfFirstProject, indexOfLastProject);
+  const currentProjects = filteredData.slice(
+    indexOfFirstProject,
+    indexOfLastProject
+  );
   const totalPages = Math.ceil(filteredData.length / projectsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -172,7 +206,6 @@ const fetchUnplannedProjects = async () => {
       </h1>
       <div className="flex flex-col sm:flex-row justify-between mb-4">
         <div className="flex flex-col sm:flex-row">
-          {/* Button to toggle project creation form */}
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
             className="bg-blue-500 text-white py-2 px-4 rounded"
@@ -189,7 +222,8 @@ const fetchUnplannedProjects = async () => {
         />
       </div>
 
-      {/* Create Project Plan Form */}
+      {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
+
       {showCreateForm && (
         <form onSubmit={handleCreateProjectPlan} className="mb-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -202,9 +236,15 @@ const fetchUnplannedProjects = async () => {
                 className="border rounded w-full p-2 text-neutral-900"
                 required
               >
-                <option className="text-neutral-900" value="">Select Project</option>
+                <option className="text-neutral-900" value="">
+                  Select Project
+                </option>
                 {unplannedProjects.map((project) => (
-                  <option className="text-neutral-900" key={project.id} value={project.id}>
+                  <option
+                    className="text-neutral-900"
+                    key={project.id}
+                    value={project.id}
+                  >
                     {project.field}
                   </option>
                 ))}
@@ -219,16 +259,24 @@ const fetchUnplannedProjects = async () => {
                 className="border rounded w-full p-2 text-neutral-900"
                 required
               >
-                <option className="text-neutral-900" value="">Select Planner</option>
+                <option className="text-neutral-900" value="">
+                  Select Planner
+                </option>
                 {planners.map((planner) => (
-                  <option className="text-neutral-900" key={planner.id} value={planner.id}>
+                  <option
+                    className="text-neutral-900"
+                    key={planner.id}
+                    value={planner.id}
+                  >
                     {planner.email}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block mb-2 text-neutral-900">Duration (in days)</label>
+              <label className="block mb-2 text-neutral-900">
+                Duration (in days)
+              </label>
               <input
                 type="number"
                 name="duration"
@@ -239,7 +287,9 @@ const fetchUnplannedProjects = async () => {
               />
             </div>
             <div>
-              <label className="block mb-2 text-neutral-900">Cost</label>
+              <label className="block mb-2 text-neutral-900">
+                Cost (in USD)
+              </label>
               <input
                 type="number"
                 name="cost"
@@ -261,10 +311,9 @@ const fetchUnplannedProjects = async () => {
               />
             </div>
             <div>
-              <label className="block mb-2 text-neutral-900">Image</label>
+              <label className="block mb-2 text-neutral-900">Upload File</label>
               <input
                 type="file"
-                name="file"
                 onChange={handleFileChange}
                 className="border rounded w-full p-2 text-neutral-900"
               />
@@ -272,66 +321,88 @@ const fetchUnplannedProjects = async () => {
           </div>
           <button
             type="submit"
-            className="bg-green-500 text-white py-2 px-4 mt-4 rounded"
+            className="mt-4 bg-green-500 text-white py-2 px-4 rounded"
           >
-            Submit
+            Create Project Plan
           </button>
         </form>
       )}
 
-      <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 border-collapse">
-        <thead className="px-5 text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-          <tr>
-            <th className="py-2 px-5">Planner</th>
-            <th className="py-2 px-5">Project</th>
-            <th className="py-2 px-5">Status</th>
-            <th className="py-2 px-5">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="px-5">
-          {currentProjects.map((project) => (
-            <tr
-              key={project.id}
-              className="px-5 odd:bg-white odd:dark:bg-white even:bg-gray-50 even:dark:bg-white"
-            >
-              <td className="py-2 px-5">{project.planned_by.email}</td>
-              <td className="py-2 px-5">{project.project.field}</td>
-              <td className="py-2 px-5">{project.status}</td>
-              <td className="py-2 flex space-x-4">
-                <button
-                  // onClick={() => handleViewDetails(project.id)}
-                  className="text-blue-500 hover:underline cursor-pointer"
-                >
-                  View Details
-                </button>
-                <a
-                  href={`/admin/editProject/${project.id}`}
-                  className="text-blue-600 px-2 py-1 rounded"
-                >
-                  Edit
-                </a>
-                <button
-                  onClick={() => handleDelete(project.id)}
-                  className="text-red-500 hover:underline cursor-pointer"
-                >
-                  Delete
-                </button>
-              </td>
+      {currentProjects.length === 0 ? (
+        <p className="text-center">No projects found.</p>
+      ) : (
+        <table className="min-w-full border border-gray-300">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border px-4 py-2">Project</th>
+              <th className="border px-4 py-2">Planner</th>
+              <th className="border px-4 py-2">Duration</th>
+              <th className="border px-4 py-2">Cost</th>
+              <th className="border px-4 py-2">Location</th>
+              {/* <th className="border px-4 py-2">File</th> */}
+              <th className="border px-4 py-2">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            S
+            {currentProjects.map((project) => (
+              <tr key={project.id} className="text-center">
+                <td className="border px-4 py-2">
+                  {project.project?.field || "N/A"}
+                </td>
+                <td className="border px-4 py-2">
+                  {project.planned_by?.email || "N/A"}
+                </td>
+                <td className="border px-4 py-2">{project.duration}</td>
+                <td className="border px-4 py-2">{project.cost}</td>
+                <td className="border px-4 py-2">{project.location}</td>
+                {/* <td className="border px-4 py-2">
+                  {project.file ? (
+                    <a
+                      href={project.file}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      View File
+                    </a>
+                  ) : 'No File'}
+                </td> */}
+                <td className="border px-4 py-2">
+                  <button
+                    onClick={() => fetchPlanDetails(project.id)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleEditClick(project)}
+                    className="text-green-600 hover:underline ml-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(project.id)}
+                    className="text-red-600 hover:underline ml-2"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
-      {/* Pagination */}
       <div className="flex justify-center mt-4">
         {Array.from({ length: totalPages }, (_, index) => (
           <button
             key={index}
             onClick={() => paginate(index + 1)}
-            className={`mx-1 px-3 py-1 rounded ${
+            className={`mx-1 border rounded px-2 py-1 ${
               currentPage === index + 1
                 ? "bg-blue-500 text-white"
-                : "bg-gray-300"
+                : "text-blue-500"
             }`}
           >
             {index + 1}
@@ -339,28 +410,110 @@ const fetchUnplannedProjects = async () => {
         ))}
       </div>
 
-      {/* Modal for Project Details */}
+      {/* Modal for Plan Details */}
       {showDetailsModal && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-5 rounded shadow-lg w-11/12 sm:w-3/4 md:w-1/2 max-h-[90vh] flex flex-col">
-            <h2 className="text-lg font-bold text-red-700 text-center">
-              Project Details
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-18/20 md:w-1/2 max-h-80 overflow-auto">
+            <h2 className="text-xl font-bold mb-4 text-blue-700 text-center">
+              Project Plan Details
             </h2>
-            {selectedProject && (
-              <div className="flex flex-col md:flex-row mt-4 overflow-y-auto flex-grow">
-                {/* User Details */}
-                <div className="flex-1 mr-0 md:mr-2">
-                  <h3 className="text-lg font-bold">Project:</h3>
-                  <p>{selectedProject.field}</p>
-                  <h3 className="text-lg font-bold">Description:</h3>
-                  <p>{selectedProject.description}</p>
-                  {/* Add more project details as necessary */}
+            {planDetails ? (
+              <div className="flex flex-row">
+                {planDetails.image && ( // Image on the right
+                  <div className="flex flex-col ">
+                    <strong className="text-black mb-2">Image:</strong>
+                    <img
+                      className="h-full w-full rounded" // Ensuring the image scales correctly
+                      src={`data:image/jpeg;base64,${planDetails.image}`}
+                      alt="Project Plan"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-col mr-4">
+                  {" "}
+                  {/* Main details on the left */}
+                  <p className="text-black">
+                    <h2 className="text-blue-700 text-center">Planner</h2>{" "}
+                  </p>
+                  <p className="text-black">
+                    <strong>Firstname:</strong>{" "}
+                    {planDetails.planned_by?.created_by?.first_name || "N/A"}
+                  </p>
+                  <p className="text-black">
+                    <strong>Lastname:</strong>{" "}
+                    {planDetails.planned_by?.created_by || "N/A"}
+                  </p>
+                  <p className="text-black">
+                    <strong>Phone:</strong>{" "}
+                    {planDetails.planned_by?.created_by || "N/A"}
+                  </p>
+                  <p className="text-black">
+                    <strong>Email:</strong>{" "}
+                    {planDetails.planned_by?.email || "N/A"}
+                  </p>
+                  <p className="text-black">
+                    <strong>Role:</strong> {planDetails.planned_by?.created_by || "N/A"}
+                  </p>
+
+                  <p className="text-black">
+                    <strong>Location:</strong> {planDetails.planned_by?.address || "N/A"}
+                  </p>
+
+                  <p className="text-black">
+                    <strong>Experience:</strong>{" "}
+                    {planDetails.planned_by?.no_experience || "N/A"} years
+                  </p>
+
+                  <p className="text-black">
+                    <strong>Joined Date:</strong>{" "}
+                    <span className="text-red-700 font-semibold">
+                      {new Date(planDetails.planned_by?.created_at).toLocaleDateString(
+                        "en-GB"
+                      )}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="flex flex-col  mr-4">
+                  {" "}
+                  {/* Main details on the left */}
+                  <h2 className="text-center text-blue-700">Project</h2>
+                  <p className="text-black">
+                    <strong>Sector:</strong>{" "}
+                    {planDetails.project?.field || "N/A"}
+                  </p>
+          
+                  <p className="text-black">
+                    <strong>Place of implementation:</strong>{" "}
+                    {planDetails.location || "N/A"}
+                  </p>
+    
+                  <p className="text-black">
+                    <strong>Duration:</strong> {planDetails.duration} days
+                  </p>
+                  <p className="text-black">
+                    <strong>Cost:</strong> {planDetails.cost} FRW
+                  </p>
+                  <p className="text-black">
+                    <strong>Status:</strong> {planDetails.status}
+                  </p>
+                  <p className="text-black">
+                    <strong>Panned date:</strong>{" "}
+                    <span className="text-red-700 font-semibold">
+                      {new Date(planDetails.created_at).toLocaleDateString(
+                        "en-GB"
+                      )}
+                    </span>
+                  </p>
                 </div>
               </div>
+            ) : (
+              <p>Loading details...</p>
             )}
             <button
-              className="mt-4 bg-blue-500 text-white py-2 rounded"
               onClick={() => setShowDetailsModal(false)}
+              className="mt-4 bg-red-500 text-white py-2 px-4 rounded"
             >
               Close
             </button>

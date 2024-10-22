@@ -126,30 +126,40 @@ function ManageEngineers() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // Handle new engineer form submission
-  const handleCreateengineer = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("userId", newengineer.userId);
-    formData.append("email", newengineer.email);
-    formData.append("address", newengineer.address);
-    formData.append("no_experience", newengineer.no_experience);
-    if (newengineer.certificate) {
-      formData.append("certificate", newengineer.certificate);
-    }
+  // State to store error messages
+const [errorMessage, setErrorMessage] = useState("");
 
-    try {
-      const res = await axios.post("http://127.0.0.1:8000/engineer/create/", formData, axiosConfig);
-      if (res.status === 201) {
-        alert("engineer created successfully!");
-        setShowCreateForm(false); // Hide form after successful creation
-        setNewengineer({ userId: "", email: "", address: "", no_experience: "", certificate: null }); // Reset form
-        handleFetch(); // Refresh the engineer list
-      }
-    } catch (err) {
-      console.error("Error creating engineer:", err);
-      alert("Failed to create engineer.");
+const handleCreateengineer = async (e) => {
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append("userId", newengineer.userId);
+  formData.append("email", newengineer.email);
+  formData.append("address", newengineer.address);
+  formData.append("no_experience", newengineer.no_experience);
+  if (newengineer.certificate) {
+    formData.append("certificate", newengineer.certificate);
+  }
+
+  try {
+    const res = await axios.post("http://127.0.0.1:8000/engineer/create/", formData, axiosConfig);
+    if (res.status === 201) {
+      alert("Engineer created successfully!");
+      setShowCreateForm(false); // Hide form after successful creation
+      setNewengineer({ userId: "", email: "", address: "", no_experience: "", certificate: null }); // Reset form
+      handleFetch(); // Refresh the engineer list
+      setErrorMessage(""); // Clear error message on successful creation
     }
-  };
+  } catch (err) {
+    console.error("Error creating engineer:", err);
+    // Check if error response exists and set the error message to state
+    if (err.response && err.response.data && err.response.data.detail) {
+      setErrorMessage(err.response.data.detail);
+    } else {
+      setErrorMessage("Failed to create engineer.");
+    }
+  }
+};
+
 
   return (
     <>
@@ -189,68 +199,82 @@ function ManageEngineers() {
       </div>
 
       {showCreateForm && (
-        <form onSubmit={handleCreateengineer} className="mb-4 p-4 border rounded bg-white shadow-md max-w-md mx-auto" >
-          <h2 className="text-black font-bold mb-2">Create New engineer</h2>
-          <div className="mb-4">
-            <label className="block text-gray-700">Select User</label>
-            <select
-              value={newengineer.userId}
-              onChange={(e) => setNewengineer({ ...newengineer, userId: e.target.value })}
-              required
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-            >
-              <option value="">Select a user</option>
-              {Array.isArray(users) && users.map((user) => ( // Ensure users is an array
-                <option key={user.id} value={user.id}>
-                  {user.phone} {/* Displaying the user's phone number */}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
-            <input
-              type="email"
-              value={newengineer.email}
-              onChange={(e) => setNewengineer({ ...newengineer, email: e.target.value })}
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Address</label>
-            <input
-              type="text"
-              value={newengineer.address}
-              onChange={(e) => setNewengineer({ ...newengineer, address: e.target.value })}
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">No of Experiences</label>
-            <input
-              type="number"
-              value={newengineer.no_experience}
-              onChange={(e) => setNewengineer({ ...newengineer, no_experience: e.target.value })}
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Certificate</label>
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={(e) => setNewengineer({ ...newengineer, certificate: e.target.files[0] })}
-              className="mt-1 block w-full border rounded-md p-2 text-gray-950"
-            />
-          </div>
-          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-            Create engineer
-          </button>
-        </form>
-      )}
+  <form onSubmit={handleCreateengineer} className="mb-4 p-4 border rounded bg-white shadow-md max-w-md mx-auto">
+    <h2 className="text-black font-bold mb-2">Create New Engineer</h2>
+    
+    {/* Display error message */}
+    {errorMessage && (
+      <div className="mb-4 p-2 bg-red-200 text-red-800 rounded">
+        {errorMessage}
+      </div>
+    )}
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">Select User</label>
+      <select
+        value={newengineer.userId}
+        onChange={(e) => setNewengineer({ ...newengineer, userId: e.target.value })}
+        required
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+      >
+        <option value="">Select a user</option>
+        {Array.isArray(users) && users.map((user) => (
+          <option key={user.id} value={user.id}>
+            {user.phone}
+          </option>
+        ))}
+      </select>
+    </div>
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">Email</label>
+      <input
+        type="email"
+        value={newengineer.email}
+        onChange={(e) => setNewengineer({ ...newengineer, email: e.target.value })}
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+        required
+      />
+    </div>
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">Address</label>
+      <input
+        type="text"
+        value={newengineer.address}
+        onChange={(e) => setNewengineer({ ...newengineer, address: e.target.value })}
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+        required
+      />
+    </div>
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">No of Experiences</label>
+      <input
+        type="number"
+        value={newengineer.no_experience}
+        onChange={(e) => setNewengineer({ ...newengineer, no_experience: e.target.value })}
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+        required
+      />
+    </div>
+    
+    <div className="mb-4">
+      <label className="block text-gray-700">Certificate</label>
+      <input
+        type="file"
+        accept=".pdf"
+        onChange={(e) => setNewengineer({ ...newengineer, certificate: e.target.files[0] })}
+        className="mt-1 block w-full border rounded-md p-2 text-gray-950"
+      />
+    </div>
+    
+    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
+      Create Engineer
+    </button>
+  </form>
+)}
+
 
       <div className="overflow-x-auto"> {/* Make the table scrollable on small screens */}
       <table
