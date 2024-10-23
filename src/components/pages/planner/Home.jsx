@@ -5,7 +5,7 @@ import { Line, Pie } from 'react-chartjs-2';
 import 'chart.js/auto';
 import './Home.css'; // Ensure this path is correct
 
-function Home() {
+function PlannerHome() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalInstitutions, setTotalInstitutions] = useState(0);
   const [institutionsData, setInstitutionsData] = useState([]);
@@ -144,4 +144,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default PlannerHome;

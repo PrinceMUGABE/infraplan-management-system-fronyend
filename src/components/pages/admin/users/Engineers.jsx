@@ -281,7 +281,7 @@ const handleCreateengineer = async (e) => {
           id="engineer-table"
           className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
         >
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <thead className="text-xs text-white uppercase bg-blue-700">
             <tr>
               <th className="px-4 py-2 text-gray-950">Phone</th> {/* Added Phone column */}
               <th className="px-4 py-2 text-gray-950">Email</th>

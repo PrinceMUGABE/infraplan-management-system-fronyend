@@ -221,11 +221,12 @@ function ManageProjects() {
         </form>
       )}
 
-      <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 border-collapse">
-        <thead className="px-5 text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+      <table className=" ml-20 w-5/6 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 border-collapse">
+        <thead className="px-5 text-xs text-white uppercase bg-blue-700">
           <tr>
             <th className="py-2 px-5">Owner</th>
             <th className="py-2 px-5">Title</th>
+            <th className="py-2 px-5">Status</th>
             <th className="py-2 px-5">Actions</th>
           </tr>
         </thead>
@@ -237,25 +238,27 @@ function ManageProjects() {
             >
               <td className="py-2 px-5">{project.created_by.phone}</td>
               <td className="py-2 px-5">{project.field}</td>
+              <td className="py-2 px-5">{project.status}</td>
               <td className="py-2 flex space-x-4">
-                <button
+                <a
                   onClick={() => handleViewDetails(project.id)}
-                  className="text-blue-500 hover:underline cursor-pointer"
+             
+                  className="text-white bg-amber-700 white  hover:underline cursor-pointer rounded py-1 px-2"
                 >
-                  View Details
-                </button>
+                  View
+                </a>
                 <a
                   href={`/admin/editProject/${project.id}`}
-                  className="text-blue-600 px-2 py-1 rounded"
+                  className="bg-blue-600 text-white px-2 py-1 rounded"
                 >
                   Edit
                 </a>
-                <button
+                <a
                   onClick={() => handleDelete(project.id)}
-                  className="text-red-500 hover:underline cursor-pointer"
+                  className="text-white bg-red-700 white  hover:underline cursor-pointer rounded py-1 px-2"
                 >
                   Delete
-                </button>
+                </a>
               </td>
             </tr>
           ))}
