@@ -149,7 +149,7 @@ const applyForFunding = async () => {
 
 
   if (isLoading) return <p>Loading planned projects...</p>;
-  if (errorMessage) return <p className="text-red-500">{errorMessage}</p>;
+  
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -276,6 +276,8 @@ const applyForFunding = async () => {
                 </p>
               </div>
             </div> <br /><br />
+            
+            if (errorMessage) return <p className="text-red-500">{errorMessage}</p>;
 
             <button
               onClick={applyForFunding}

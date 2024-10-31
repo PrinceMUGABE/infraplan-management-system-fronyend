@@ -1,14 +1,23 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { 
-  AreaChart, Area, LineChart, Line, XAxis, YAxis, 
-  CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+import {
+  AreaChart,
+  Area,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from "recharts";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { jsPDF } from "jspdf"; // Importing jsPDF
 import html2canvas from "html2canvas";
+import FundedProjectModal from "./Funded_Project_Details";
 
 function StakeholderManageFundedProjects() {
   const [projectData, setProjectData] = useState([]);
@@ -85,33 +94,6 @@ function StakeholderManageFundedProjects() {
     handleFetch();
   }, []);
 
-  //   const handleDelete = async (id) => {
-  //     const conf = window.confirm("Do you want to delete this project?");
-  //     if (conf) {
-  //       try {
-  //         const response = await fetch(
-  //           `http://127.0.0.1:8000/planned/delete/${id}/`,
-  //           {
-  //             method: "DELETE",
-  //             headers: {
-  //               Authorization: `Bearer ${accessToken}`,
-  //             },
-  //           }
-  //         );
-  //         if (response.status === 204) {
-  //           setProjectData((prevProjectData) =>
-  //             prevProjectData.filter((project) => project.id !== id)
-  //           );
-  //         } else {
-  //           alert("Failed to delete project");
-  //         }
-  //       } catch (err) {
-  //         console.error("Error deleting project", err);
-  //         alert("An error occurred while deleting the project");
-  //       }
-  //     }
-  //   };
-
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -133,43 +115,40 @@ function StakeholderManageFundedProjects() {
     }
   };
 
-    // Transform data for Recharts
-    const prepareChartData = () => {
-      const statusCountByDate = {};
-  
-      projectData.forEach((project) => {
-        const createdDate = new Date(project.created_at).toLocaleDateString();
-        if (!statusCountByDate[createdDate]) {
-          statusCountByDate[createdDate] = {
-            date: createdDate,
-            accepted: 0,
-            rejected: 0,
-            pending: 0,
-          };
-        }
-  
-        if (project.status === "accepted") {
-          statusCountByDate[createdDate].accepted += 1;
-        } else if (project.status === "rejected") {
-          statusCountByDate[createdDate].rejected += 1;
-        } else if (project.status === "pending") {
-          statusCountByDate[createdDate].pending += 1;
-        }
-      });
-  
-      return Object.values(statusCountByDate);
-    };
-  
-    const chartData = prepareChartData();
-    // Custom Y-axis tick formatter to ensure whole numbers
+  // Transform data for Recharts
+  const prepareChartData = () => {
+    const statusCountByDate = {};
+
+    projectData.forEach((project) => {
+      const createdDate = new Date(project.created_at).toLocaleDateString();
+      if (!statusCountByDate[createdDate]) {
+        statusCountByDate[createdDate] = {
+          date: createdDate,
+          accepted: 0,
+          rejected: 0,
+          pending: 0,
+        };
+      }
+
+      if (project.status === "accepted") {
+        statusCountByDate[createdDate].accepted += 1;
+      } else if (project.status === "rejected") {
+        statusCountByDate[createdDate].rejected += 1;
+      } else if (project.status === "pending") {
+        statusCountByDate[createdDate].pending += 1;
+      }
+    });
+
+    return Object.values(statusCountByDate);
+  };
+
+  const chartData = prepareChartData();
+  // Custom Y-axis tick formatter to ensure whole numbers
   const formatYAxis = (value) => {
     return Math.floor(value);
   };
 
-
-  const COLORS = ['#36A2EB', '#FF6384', '#63ffc1'];
-
-
+  const COLORS = ["#36A2EB", "#FF6384", "#63ffc1"];
 
   const filteredData = projectData.filter((project) => {
     const field = project?.funded_project?.project?.field || ""; // Fallback to empty string if undefined
@@ -177,40 +156,37 @@ function StakeholderManageFundedProjects() {
     const location = project?.funded_project?.location || ""; // Fallback to empty string if undefined
     const status = project?.status || "";
 
-
     return (
       field.toLowerCase().includes(searchQuery.toLowerCase()) ||
       email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       status.toLowerCase().includes(searchQuery.toLowerCase())
-
     );
   });
 
-   // Pagination
-   const indexOfLastProject = currentPage * projectsPerPage;
-   const indexOfFirstProject = indexOfLastProject - projectsPerPage;
-   const currentProjects = filteredData.slice(indexOfFirstProject, indexOfLastProject);
-   const totalPages = Math.ceil(filteredData.length / projectsPerPage);
- 
-   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // Pagination
+  const indexOfLastProject = currentPage * projectsPerPage;
+  const indexOfFirstProject = indexOfLastProject - projectsPerPage;
+  const currentProjects = filteredData.slice(
+    indexOfFirstProject,
+    indexOfLastProject
+  );
+  const totalPages = Math.ceil(filteredData.length / projectsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const closeModal = () => {
     setShowDetailsModal(false);
     setPlanDetails(null);
   };
 
-
-
-
-
   // Function to download table data as CSV
   const downloadCSV = () => {
     const csvRows = [];
     const headers = ["ID", "Project", "Status"];
     csvRows.push(headers.join(","));
-  
-    currentProjects.forEach(project => {
+
+    currentProjects.forEach((project) => {
       const row = [
         project.id,
         project.funded_project?.project?.title,
@@ -218,12 +194,12 @@ function StakeholderManageFundedProjects() {
       ];
       csvRows.push(row.join(","));
     });
-  
+
     const csvString = csvRows.join("\n");
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', 'my_funded_projects.csv');
+    link.setAttribute("download", "my_funded_projects.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -231,9 +207,9 @@ function StakeholderManageFundedProjects() {
 
   // Function to download table data as PDF
   const downloadPDF = async () => {
-    const input = document.getElementById('table-to-pdf');
+    const input = document.getElementById("table-to-pdf");
     const canvas = await html2canvas(input);
-    const data = canvas.toDataURL('image/png');
+    const data = canvas.toDataURL("image/png");
     const pdf = new jsPDF();
     const imgWidth = 190; // PDF width
     const pageHeight = pdf.internal.pageSize.height;
@@ -242,29 +218,29 @@ function StakeholderManageFundedProjects() {
 
     let position = 0;
 
-    pdf.addImage(data, 'PNG', 10, position, imgWidth, imgHeight);
+    pdf.addImage(data, "PNG", 10, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
     while (heightLeft >= 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(data, 'PNG', 10, position, imgWidth, imgHeight);
+      pdf.addImage(data, "PNG", 10, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
     }
 
-    pdf.save('my_funded_projects.pdf');
+    pdf.save("my_funded_projects.pdf");
   };
-
-
-
 
   const fetchFundedProjectDetails = async (id) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/funded_project/${id}/`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await fetch(
+        `http://127.0.0.1:8000/funded_project/${id}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to fetch plan details");
 
@@ -280,8 +256,9 @@ function StakeholderManageFundedProjects() {
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black text-center">
-        These are the projects you have decided to invest in for them to be implemented
-      </h1> 
+        These are the projects you have decided to invest in for them to be
+        implemented
+      </h1>
       <Link
         className="bg-blue-500 text-white py-2 px-4 rounded mb-4"
         to={"/stakeholder"}
@@ -291,22 +268,27 @@ function StakeholderManageFundedProjects() {
 
       <br />
 
-
-<div className="mb-4 flex justify-between py-4">
-<input
-    type="text"
-    value={searchQuery}
-    onChange={handleSearchChange}
-    placeholder="Search by email or location..."
-    className="border rounded py-2 px-3 text-gray-700 w-full max-w-md"
-  />
-  <button onClick={downloadCSV} className="bg-green-500 text-white py-2 px-4 rounded">
-    Download CSV
-  </button>
-  <button onClick={downloadPDF} className="bg-blue-500 text-white py-2 px-4 rounded mr-4">
-    Download PDF
-  </button>
-</div>
+      <div className="mb-4 flex justify-between py-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          placeholder="Search by email or location..."
+          className="border rounded py-2 px-3 text-gray-700 w-full max-w-md"
+        />
+        <button
+          onClick={downloadCSV}
+          className="bg-green-500 text-white py-2 px-4 rounded"
+        >
+          Download CSV
+        </button>
+        <button
+          onClick={downloadPDF}
+          className="bg-blue-500 text-white py-2 px-4 rounded mr-4"
+        >
+          Download PDF
+        </button>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-300">
@@ -319,7 +301,6 @@ function StakeholderManageFundedProjects() {
               <th className="py-2">Status</th>
               <th className="py-2">Monthly Income</th>
               <th className="py-2">Action</th>
-
             </tr>
           </thead>
           <tbody>
@@ -354,10 +335,17 @@ function StakeholderManageFundedProjects() {
                   {project.created_by?.monthly_income}
                 </td>
                 <td>
-                <button onClick={() => fetchFundedProjectDetails(project.id)}  style={{ border: 'none', background: 'none', cursor: 'pointer' }}>
-                  <FontAwesomeIcon className="text-blue-500" icon={faEye} />
-                </button>
-              </td>
+                  <button
+                    onClick={() => fetchFundedProjectDetails(project.id)}
+                    style={{
+                      border: "none",
+                      background: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <FontAwesomeIcon className="text-blue-500" icon={faEye} />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -381,8 +369,8 @@ function StakeholderManageFundedProjects() {
         ))}
       </div>
 
-       {/* Charts Section */}
-       <div className="flex flex-col md:flex-row justify-center mt-10 space-y-8 md:space-y-0">
+      {/* Charts Section */}
+      <div className="flex flex-col md:flex-row justify-center mt-10 space-y-8 md:space-y-0">
         {/* Status Distribution Area Chart */}
         <div className="w-full md:w-1/2 p-4">
           <h2 className="text-center font-semibold text-lg mb-2 text-blue-700">
@@ -401,14 +389,12 @@ function StakeholderManageFundedProjects() {
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis 
+                <YAxis
                   tickFormatter={formatYAxis}
                   allowDecimals={false}
-                  domain={[0, 'auto']}
+                  domain={[0, "auto"]}
                 />
-                <Tooltip 
-                  formatter={(value) => Math.floor(value)}
-                />
+                <Tooltip formatter={(value) => Math.floor(value)} />
                 <Legend />
                 <Area
                   type="monotone"
@@ -460,28 +446,26 @@ function StakeholderManageFundedProjects() {
                 <YAxis
                   tickFormatter={formatYAxis}
                   allowDecimals={false}
-                  domain={[0, 'auto']}
+                  domain={[0, "auto"]}
                 />
-                <Tooltip 
-                  formatter={(value) => Math.floor(value)}
-                />
+                <Tooltip formatter={(value) => Math.floor(value)} />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="accepted" 
-                  stroke="#36A2EB" 
+                <Line
+                  type="monotone"
+                  dataKey="accepted"
+                  stroke="#36A2EB"
                   strokeWidth={2}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="rejected" 
-                  stroke="#FF6384" 
+                <Line
+                  type="monotone"
+                  dataKey="rejected"
+                  stroke="#FF6384"
                   strokeWidth={2}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="pending" 
-                  stroke="#63ffc1" 
+                <Line
+                  type="monotone"
+                  dataKey="pending"
+                  stroke="#63ffc1"
                   strokeWidth={2}
                 />
               </LineChart>
@@ -490,84 +474,13 @@ function StakeholderManageFundedProjects() {
         </div>
       </div>
 
-
-      {/* Modal for Project Details */}
       {showDetailsModal && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-5 rounded shadow-lg w-11/12 sm:w-3/4 md:w-1/2 max-h-[90vh] flex flex-col">
-            <h2 className="text-lg font-bold text-red-700 text-center">
-              Project Details
-            </h2>
-            {selectedProject && selectedProject.id ? (
-              <div className="flex flex-col md:flex-row mt-4 overflow-y-auto flex-grow">
-                {/* User Details Section */}
-                <div className=" p-4 rounded md:w-1/2 md:mr-2">
-                  <h3 className="font-bold text-blue-900">Project Planner</h3>
-                  <p className="text-black">
-                    <strong>First Name:</strong>{" "}
-                    <span className="text-gray-700">
-                      {selectedProject.funded_project.planned_by.created_by.first_name}
-                    </span>
-                  </p>
-                  <p className="text-black">
-                    <strong>Last Name:</strong>{" "}
-                    <span className="text-gray-700">
-                    {selectedProject.funded_project.planned_by.created_by.last_name}
-                    </span>
-                  </p>
-                  <p className="text-black">
-                    <strong>Phone:</strong>{" "}
-                    <span className="text-gray-700">
-                      {selectedProject.created_by.phone}
-                    </span>
-                  </p>
-                  <p className="text-black">
-                    <strong>Joined date:</strong>{" "}
-                    <span className="text-red-600">
-                      {new Date(
-                        selectedProject.created_by.created_at
-                      ).toLocaleDateString("en-GB")}
-                    </span>
-                  </p>
-                </div>
-
-                {/* Project Details Section */}
-                <div className=" p-4 rounded md:w-1/2 md:ml-2">
-                  <h3 className="font-bold text-blue-900">Project Details</h3>
-                  <p className="text-black">
-                    <strong>Field:</strong>{" "}
-                    <span className="text-gray-700">
-                      {selectedProject.field}
-                    </span>
-                  </p>
-                  <p className="text-black">
-                    <strong>Description:</strong>{" "}
-                    <span className="text-gray-700">
-                      {selectedProject.description}
-                    </span>
-                  </p>
-                  <button
-                    className="mt-4 bg-green-500 text-white py-2 px-4 rounded self-center"
-                    onClick={() => fetchFundedProjectDetails(selectedProject)}
-                  >
-                    Take It
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-red-500">Loading project owner details...</p>
-            )}
-
-            <button
-              onClick={() => setShowDetailsModal(false)}
-              className="mt-4 bg-gray-500 text-white py-2 px-4 rounded self-center"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <FundedProjectModal
+          show={showDetailsModal}
+          handleClose={() => setShowDetailsModal(false)}
+          projectDetails={planDetails}
+        />
       )}
-
     </>
   );
 }
