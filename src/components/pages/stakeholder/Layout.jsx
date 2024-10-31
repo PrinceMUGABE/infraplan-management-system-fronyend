@@ -4,7 +4,7 @@ import React from 'react';
 import Header from './Header';
 import { Outlet } from 'react-router-dom';
 
-function Planner_Layout() {
+function Stakeholder_Layout() {
   return (
     <div className='bg-gray-100 min-h-screen overflow-auto'> {/* Added px-4 for slight horizontal padding */}
       <Header />
@@ -19,4 +19,6 @@ function Planner_Layout() {
   );
 }
 
-export default Planner_Layout;
+
+
+export default Stakeholder_Layout;

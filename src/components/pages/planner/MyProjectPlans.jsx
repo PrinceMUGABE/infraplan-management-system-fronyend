@@ -1,7 +1,9 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Pie, Line } from "react-chartjs-2";
 
-function ManageProjectsInPlan() {
+function PlannerManageProjectPlans() {
   const [projectData, setProjectData] = useState([]);
   const [unplannedProjects, setUnplannedProjects] = useState([]);
   const [planners, setPlanners] = useState([]);
@@ -24,14 +26,25 @@ function ManageProjectsInPlan() {
   const [editingProject, setEditingProject] = useState(null);
 
   const accessToken = JSON.parse(localStorage.getItem("userData"))?.access;
+  const user = JSON.parse(localStorage.getItem("userData"));
+  const userId = user ? user.id : null;
 
   const handleFetch = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/planned/projects/", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      // Log the token and userId to the console
+      console.log("Access Token:", accessToken);
+      console.log("User ID:", userId);
+
+      // Use backticks for the URL to allow template literals
+      const response = await fetch(
+        `http://127.0.0.1:8000/planned/planner/${userId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
       if (!response.ok) throw new Error("Network response was not ok");
       const data = await response.json();
       setProjectData(data);
@@ -40,102 +53,8 @@ function ManageProjectsInPlan() {
     }
   };
 
-  const handleAcceptProject = async (projectId) => {
-    const token = localStorage.getItem('token');  // Retrieve token from local storage
-    if (!token) {
-        console.error('No token found');
-        return;
-    }
-
-    try {
-        const response = await fetch(`http://127.0.0.1:8000/planned/accept/${projectId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,  // Add JWT token
-            },
-            credentials: 'include',  // Include credentials to allow cookies/auth headers
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('Project accepted successfully:', data);
-
-    } catch (error) {
-        console.error('Error accepting project plan:', error);
-    }
-};
-
-
-
-const handleRejectProject = async (projectId) => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-      console.error('No token found');
-      return;
-  }
-
-  try {
-      const response = await fetch(`http://127.0.0.1:8000/planned/reject/${projectId}/`, {  // Corrected port
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-          },
-          credentials: 'include',  // Include credentials if needed
-      });
-
-      if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
-      }
-
-      const data = await response.json();  // Capture response data
-      console.log('Project rejected successfully:', data);
-  } catch (error) {
-      console.error('Error rejecting project plan:', error);
-  }
-};
-
-
-  
-  const fetchUnplannedProjects = async () => {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/project/projects/", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      const data = await response.json();
-      const unplannedProjects = data.filter(
-        (project) => project.status === "un_planned"
-      );
-      setUnplannedProjects(unplannedProjects);
-    } catch (err) {
-      console.error("Error fetching unplanned projects:", err);
-    }
-  };
-
-  const fetchPlanners = async () => {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/planner/planners/", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      const data = await response.json();
-      setPlanners(data);
-    } catch (err) {
-      console.error("Error fetching planners:", err);
-    }
-  };
-
   useEffect(() => {
     handleFetch();
-    fetchUnplannedProjects();
-    fetchPlanners();
   }, []);
 
   const handleDelete = async (id) => {
@@ -185,6 +104,84 @@ const handleRejectProject = async (projectId) => {
       setNewProjectPlan({ ...newProjectPlan, file });
     }
   };
+
+  // Prepare chart data
+
+  const chartData = () => {
+    const statusCountByDate = {}; // Object to hold status counts by date
+  
+    projectData.forEach((project) => {
+      const createdDate = new Date(project.created_at).toLocaleDateString();
+      if (!statusCountByDate[createdDate]) {
+        statusCountByDate[createdDate] = { accepted: 0, rejected: 0, pending: 0 };
+      }
+  
+      // Increment the counts based on the project's status
+      if (project.status === "accepted") {
+        statusCountByDate[createdDate].accepted += 1;
+      } else if (project.status === "rejected") {
+        statusCountByDate[createdDate].rejected += 1;
+      } else if (project.status === "pending") {
+        statusCountByDate[createdDate].pending += 1;
+      }
+    });
+  
+    // Prepare area data for the chart
+    const labels = Object.keys(statusCountByDate);
+    const acceptedData = labels.map((date) => statusCountByDate[date].accepted);
+    const rejectedData = labels.map((date) => statusCountByDate[date].rejected);
+    const pendingData = labels.map((date) => statusCountByDate[date].pending);
+  
+    return {
+      pieData: {
+        labels: [
+          `Accepted (${((acceptedData.reduce((a, b) => a + b, 0) / projectData.length) * 100).toFixed(1)}%)`,
+          `Rejected (${((rejectedData.reduce((a, b) => a + b, 0) / projectData.length) * 100).toFixed(1)}%)`,
+          `Pending (${((pendingData.reduce((a, b) => a + b, 0) / projectData.length) * 100).toFixed(1)}%)`,
+        ],
+        datasets: [
+          {
+            data: [acceptedData.reduce((a, b) => a + b, 0), rejectedData.reduce((a, b) => a + b, 0), pendingData.reduce((a, b) => a + b, 0)],
+            backgroundColor: ["#36A2EB", "#FF6384", "#63ffc1"],
+            hoverBackgroundColor: ["#36A2EB", "#FF6384", "#63ffc1"],
+          },
+        ],
+      },
+      areaData: {
+        labels,
+        datasets: [
+          {
+            label: "Accepted",
+            data: acceptedData,
+            fill: true,
+            backgroundColor: "rgba(54, 162, 235, 0.2)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            tension: 0.1,
+          },
+          {
+            label: "Rejected",
+            data: rejectedData,
+            fill: true,
+            backgroundColor: "rgba(255, 99, 132, 0.2)",
+            borderColor: "rgba(255, 99, 132, 1)",
+            tension: 0.1,
+          },
+          {
+            label: "Pending",
+            data: pendingData,
+            fill: true,
+            backgroundColor: "rgba(99, 255, 201, 0.2)",
+            borderColor: "rgba(99, 255, 201, 1)",
+            tension: 0.1,
+          },
+        ],
+      },
+    };
+  };
+  
+ 
+
+  const { pieData, areaData } = chartData();
 
   const handleCreateOrUpdateProjectPlan = async (e) => {
     e.preventDefault();
@@ -302,12 +299,12 @@ const handleRejectProject = async (projectId) => {
       <h1 className="text-2xl font-bold mb-4 text-black text-center">
         Manage Project Plans
       </h1>
-      <button
-        onClick={() => setShowCreateForm(!showCreateForm)}
+      <Link
         className="bg-blue-500 text-white py-2 px-4 rounded"
+        to={"/planner"}
       >
         {showCreateForm ? "Cancel" : "Create New Project Plan"}
-      </button>
+      </Link>
 
       {showCreateForm && (
         <form
@@ -316,40 +313,19 @@ const handleRejectProject = async (projectId) => {
           style={{ maxWidth: "400px" }} // Limit form width
         >
           {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
           <label className="block mb-2 text-black">
             Project:
-            <select
+            <input
+              type="text"
               name="project"
-              value={newProjectPlan.project}
+              value={newProjectPlan.project.field}
               onChange={handleInputChange}
               required
               className="block w-full border rounded py-2 px-3 text-gray-700"
-            >
-              <option value="">Select a project</option>
-              {unplannedProjects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.field}
-                </option>
-              ))}
-            </select>
+            />
           </label>
-          <label className="block mb-2 text-black">
-            Planner:
-            <select
-              name="planner"
-              value={newProjectPlan.planner}
-              onChange={handleInputChange}
-              required
-              className="block w-full border rounded py-2 px-3 text-gray-700"
-            >
-              <option value="">Select a planner</option>
-              {planners.map((planner) => (
-                <option key={planner.id} value={planner.id}>
-                  {planner.email}
-                </option>
-              ))}
-            </select>
-          </label>
+
           <label className="block mb-2 text-black">
             Duration:
             <input
@@ -361,6 +337,7 @@ const handleRejectProject = async (projectId) => {
               className="block w-full border rounded py-2 px-3 text-gray-700"
             />
           </label>
+
           <label className="block mb-2 text-black">
             Cost:
             <input
@@ -406,14 +383,14 @@ const handleRejectProject = async (projectId) => {
         value={searchQuery}
         onChange={handleSearchChange}
         placeholder="Search by project, planner, or location..."
-        className="mb-4 border rounded py-2 px-3 text-gray-700 ml-96"
+        className="mb-4 border rounded py-2 px-3 text-gray-700 ml-4"
       />
 
       <table className="min-w-full border border-gray-300">
         <thead className="bg-blue-700">
           <tr>
             <th className="p-2">Project</th>
-            <th className="p-2">Planner</th>
+
             <th className="p-2">Duration</th>
             <th className="p-2">Cost</th>
             <th className="p-2">Location</th>
@@ -425,7 +402,7 @@ const handleRejectProject = async (projectId) => {
           {currentProjects.map((project) => (
             <tr key={project.id}>
               <td className="p-2 text-gray-700">{project.project.field}</td>
-              <td className="p-2 text-gray-700">{project.planned_by.email}</td>
+
               <td className="p-2 text-gray-700">{project.duration}</td>
               <td className="p-2 text-gray-700">{project.cost}</td>
               <td className="p-2 text-gray-700">{project.location}</td>
@@ -470,6 +447,41 @@ const handleRejectProject = async (projectId) => {
             {index + 1}
           </button>
         ))}
+      </div>
+
+      {/* Charts */}
+      <div className="flex justify-center mt-10">
+        <div className="w-1/2 p-4 flex justify-center">
+          <div style={{ width: "250px", height: "250px" }}>
+            {" "}
+            {/* Adjusted size */}
+            <h2 className="text-center font-semibold text-lg mb-2 text-blue-700">
+              Project Status
+            </h2>
+            <Pie
+              data={pieData}
+              options={{
+                plugins: {
+                  datalabels: {
+                    color: "#fff",
+                    formatter: (value, ctx) => {
+                      const label = ctx.chart.data.labels[ctx.dataIndex];
+                      return `${label}: ${value}`;
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="w-1/2 p-4 mr-40">
+          <h2 className="text-center font-semibold text-lg mb-2 text-blue-700">
+            Projects Over Time
+          </h2>
+
+          <Line data={areaData} />
+        </div>
       </div>
 
       {/* Modal for Plan Details */}
@@ -589,35 +601,18 @@ const handleRejectProject = async (projectId) => {
             </span>
           </p>
 
-          <div className="flex flex-col space-y-4"> {/* Use space-y-4 to add vertical space between buttons */}
-  <div className="flex flex-row">
-    <button
-      className="flex-grow px-4 py-2 bg-green-700 mt-4 self-center w-full text-white"
-      onClick={() => handleAcceptProject(planDetails.id)}
-    >
-      Accept
-    </button>
-  </div>
-
-  <div className="flex flex-row">
-    <button
-      className="flex-grow px-4 py-2 bg-orange-700 mt-4 self-center w-full text-white"
-      onClick={() => handleRejectProject(planDetails.id)}
-    >
-      Reject
-    </button>
-  </div>
-
-  <div className="flex flex-row">
-    <button
-      className="flex-grow px-4 py-2 bg-red-700 mt-4 self-center w-full text-white"
-      onClick={closeModal}
-    >
-      Close
-    </button>
-  </div>
-</div>
-
+          <div className="flex flex-col space-y-4">
+            {" "}
+            {/* Use space-y-4 to add vertical space between buttons */}
+            <div className="flex flex-row">
+              <button
+                className="flex-grow px-4 py-2 bg-red-700 mt-4 self-center w-full text-white"
+                onClick={closeModal}
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       ) : (
         <p>Loading details...</p>
@@ -626,4 +621,4 @@ const handleRejectProject = async (projectId) => {
   );
 }
 
-export default ManageProjectsInPlan;
+export default PlannerManageProjectPlans;

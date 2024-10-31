@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import React from "react";
-import hero from "../../assets/pictures/hand-thumb-up-rwanda.png";
+import hero from "../../assets/pictures/OIP (2).jpg";
 
 const Hero = () => {
   return (
@@ -30,7 +30,7 @@ const Hero = () => {
               style={{ lineHeight: 1.2 }}
             >
               Get in tourch with updated Policy{" "}
-              <span className="text-primary">Rwanda Single portal Policy Access</span>
+              <span className="text-primary">Infra-plan Management System</span>
             </h1>
             <p data-aos="fade-up" data-aos-delay="300">
               Policy Link Rwanda is a centralized system designed to collect and organize

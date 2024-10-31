@@ -1,79 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { GoBell } from "react-icons/go";
-import { Link } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
+/* eslint-disable no-unused-vars */
+// Header.js
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [username, setUsername] = useState("");
-
-  useEffect(() => {
-    const userData = JSON.parse(sessionStorage.getItem("userData"));
-    if (userData) {
-      setUsername(userData.username);
-    }
-  }, []);
-
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen);
-  };
-
   return (
-    <div className="flex justify-between items-center p-4 bg-white shadow-md">
-      <div>
-        <h1 className="text-xs text-gray-500">Welcome Back!</h1>
-        {/* <p className="text-xl text-black font-semibold">{username}</p> */}
-      </div>
-      <div className="flex items-center space-x-5">
-        {/* <div className="hidden md:flex">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-indigo-100/30 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-          />
-        </div> */}
-        {/* <div className="relative">
-          <button className="relative text-gray-600">
-            <GoBell size={28} />
-            <span className="absolute top-0 right-0 -mt-1 -mr-1 flex justify-center items-center bg-indigo-600 text-white font-semibold text-[10px] w-5 h-4 rounded-full border-2 border-white">
-              9
-            </span>
-          </button>
-        </div> */}
-        <div className="relative">
-          <div className=" flex gap-2">
-            <div>
-            <FaUserCircle className="w-8 h-8 rounded-full border-4 border-indigo-400 cursor-pointer" 
-            onClick={toggleDropdown}
-            />
-              {/* <img
-                
-                // src='https://randomuser.me/api/portraits/women/50.jpg'
-                alt="User"
-                
-              /> */}
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
-                  {/* <Link
-                    to="/admin/profile"
-                    className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
-                  >
-                    Profile
-                  </Link> */}
-                  <Link
-                    to="/"
-                    className="block px-4 py-2 text-gray-800 hover:bg-indigo-500 hover:text-white"
-                  >
-                    Logout
-                  </Link>
-                </div>
-              )}
-            </div>
-            {/* <p>{username}</p> */}
-          </div>
-        </div>
-      </div>
-    </div>
+    <header className='bg-blue-600 text-white p-4 w-full'>
+      <nav className='flex justify-col px-20'>
+        <Link to="/planner" className='hover:text-gray-300'>Dashboard</Link>
+        <Link to="/planner/projects" className='hover:text-gray-300 px-10'>My Projects</Link>
+        <Link to="/profile" className='hover:text-gray-300'>Profile</Link>
+        <Link to="/" className='hover:text-gray-300 px-10'>Logout</Link>
+      </nav>
+    </header>
   );
 };
 

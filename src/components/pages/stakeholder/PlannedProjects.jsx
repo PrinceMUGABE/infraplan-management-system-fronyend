@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 
-function ManageProjectsInPlan() {
+function Stakeholder_Manage_Planned_projects() {
   const [projectData, setProjectData] = useState([]);
   const [unplannedProjects, setUnplannedProjects] = useState([]);
   const [planners, setPlanners] = useState([]);
@@ -626,4 +626,4 @@ const handleRejectProject = async (projectId) => {
   );
 }
 
-export default ManageProjectsInPlan;
+export default Stakeholder_Manage_Planned_projects;

@@ -26,6 +26,18 @@ import EditStakeholder from "./components/pages/admin/users/EditStakeholder.jsx"
 import ManageProjects from "./components/pages/admin/project/Projects.jsx"
 import Editproject from "./components/pages/admin/project/EditProject.jsx";
 import ManageProjectsInPlan from "./components/pages/admin/projectUnderPlan/ProjectsInPlan";
+import Planner_Layout from "./components/pages/planner/Layout.jsx";
+
+import PrivateRoute from "./components/ProtectRoutes.jsx";
+import PlannerHome from "./components/pages/planner/Home.jsx";
+import Stakeholder_Layout from "./components/pages/stakeholder/Layout.jsx";
+import Stakeholer_Home from "./components/pages/stakeholder/Home.jsx";
+import Engineer_Layout from "./components/pages/engineer/Layout.jsx";
+import Enginner_Home from "./components/pages/engineer/Home.jsx";
+import Engineer_Manage_Planned_projects from "./components/pages/engineer/PlannedProjects.jsx";
+import PlannerManageProjectPlans from "./components/pages/planner/MyProjectPlans.jsx";
+
+import StakeholderManageFundedProjects from "./components/pages/stakeholder/MyProjects.jsx";
 
 
 
@@ -61,7 +73,8 @@ const App = () => {
 
             {/* Admin */}
 
-          <Route path="/admin" element={<Layout />} >
+
+          <Route path="/admin" element={<PrivateRoute><Layout /></PrivateRoute>} >
             <Route index element={<Home />} />
             <Route path="/admin/users" element={<Users />} />
             <Route path="/admin/createUser" element={<AdminCreateUser />} />
@@ -85,6 +98,35 @@ const App = () => {
           </Route>
 
            {/* End of Admin route*/}
+
+
+            {/* Start of Planner routes route*/}
+            <Route path="/planner" element={<PrivateRoute><Planner_Layout /></PrivateRoute>} >
+              <Route index element={<PlannerHome />} />
+              <Route path="/planner/projects" element={<PlannerManageProjectPlans />} />
+        
+           </Route>
+           {/* Ends of Planner routes route*/}
+
+           {/* Start of Stakeholder routes route*/}
+           <Route path="/stakeholder" element={<PrivateRoute><Stakeholder_Layout /></PrivateRoute>} >
+              <Route index element={<Stakeholer_Home />} />
+              <Route path="/stakeholder/projects" element={<StakeholderManageFundedProjects />} />
+        
+           </Route>
+           {/* Ends of Stakeholder routes route*/} 
+
+
+           {/* Start of Engineer routes route*/}
+           <Route path="/engineer" element={<PrivateRoute><Engineer_Layout /></PrivateRoute>} >
+              <Route index element={<Enginner_Home />} />
+              <Route path="projects" element={<Engineer_Manage_Planned_projects />} />
+        
+           </Route>
+           {/* Ends of Engineer routes route*/} 
+
+
+
 
         </Routes>
       </BrowserRouter>

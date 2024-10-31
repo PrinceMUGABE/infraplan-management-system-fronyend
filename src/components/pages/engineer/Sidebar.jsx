@@ -27,9 +27,11 @@ function Sidebar() {
 
   const Sidebar_Links = [
     { id: 1, name: 'Dashboard', path: '/admin', icon: <MdDashboard /> },
-    { id: 2, name: 'My Project', path: '/planner/projects', icon: <FaUsers /> },
+    { id: 2, name: 'Users', path: '/admin/users', icon: <FaUsers /> },
     { id: 3, name: 'Project Owners', path: '/admin/project_owners', icon: <FaUsers /> },
-
+    { id: 4, name: 'Project Planners', path: '/admin/planners', icon: <FaUsers /> },
+    { id: 5, name: 'Technicians', path: '/admin/engineers', icon: <FaUsers /> },
+    { id: 6, name: 'Project Planners', path: '/admin/planners', icon: <FaUsers /> },
 
     
   ];

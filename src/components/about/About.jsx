@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
-import AboutImg from '../../assets/pictures/about_lil.jpeg';
+import AboutImg from '../../assets/pictures/1.webp';
 
 function About() {
     return (
