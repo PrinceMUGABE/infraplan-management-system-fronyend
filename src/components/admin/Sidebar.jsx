@@ -13,17 +13,13 @@ import { FcDepartment } from "react-icons/fc";
 import { FaCommentDots } from "react-icons/fa";
 import { FaDiagramProject } from "react-icons/fa6";
 
+
+
 function Sidebar() {
   const [activeLink, setActiveLink] = useState(null);
-  const [isInstitutionOpen, setIsInstitutionOpen] = useState(false);
 
   const handleLinkClick = (index) => {
     setActiveLink(index);
-    // if (index === 2) {
-    //   setIsInstitutionOpen(!isInstitutionOpen);
-    // } else {
-    //   setIsInstitutionOpen(false);
-    // }
   };
 
   const Sidebar_Links = [
@@ -32,46 +28,39 @@ function Sidebar() {
     { id: 3, name: 'Project Planners', path: '/admin/planners', icon: <FaUsers /> },
     { id: 4, name: 'Technicians', path: '/admin/engineers', icon: <FaUsers /> },
     { id: 5, name: 'Stakeholders', path: '/admin/stakeholders', icon: <FaUsers /> },
-
-
-    { id: 6, name: 'Projects', path: '/admin/projects', icon: <FaDiagramProject />},
-    { id: 6, name: 'Planned Projects', path: '/admin/plannedProjects', icon: <FaDiagramProject />},
-    { id: 6, name: 'Projects under Implementations', path: '/admin/projects', icon: <FaDiagramProject />},
-
-    
+    { id: 6, name: 'Projects', path: '/admin/projects', icon: <FaDiagramProject /> },
+    { id: 7, name: 'Planned Projects', path: '/admin/plannedProjects', icon: <FaDiagramProject /> },
+    { id: 8, name: 'Stakeholders Application', path: '/admin/stakeholder_applications', icon: <FaDiagramProject /> },
+    { id: 9, name: 'Engineers Application', path: '/admin/engineerApplications', icon: <FaDiagramProject /> },
+    // Add more items if needed
   ];
 
   return (
-
     <div className='w-16 md:w-56 fixed left-0 top-0 z-10 border-r h-screen pt-8 px-4 bg-white shadow-md'>
-    <div className='mb-8 flex justify-center md:block'>
-      <img src={Logo} alt='Logo' className='w-10 md:w-20' />
-    </div>
-    <ul className='mt-6 space-y-6'>
-      {Sidebar_Links.map((link, index) => (
-        <li key={index} className='relative'>
-          <div
-            className={`font-medium rounded-md py-2 px-5 hover:bg-gray-100 hover:text-indigo-500 ${activeLink === index ? 'bg-indigo-100 text-indigo-500' : ''}`}
-            onClick={() => handleLinkClick(index)}
-          >
-            <div className='flex items-center justify-between'>
-              <Link to={link.path || '#'} className='flex items-center justify-center md:justify-start md:space-x-5'>
-                <span className=' text-indigo-500'>{link.icon}</span>
-                <span className='text-sm text-gray-500 md:flex hidden'>{link.name}</span>
-              </Link>
-
+      <div className='mb-8 flex justify-center md:block'>
+        <img src={Logo} alt='Logo' className='w-10 md:w-20' />
+      </div>
+      <ul className='mt-6 space-y-4 overflow-y-auto h-[calc(100vh-120px)]'> {/* Adjust height and enable scrolling */}
+        {Sidebar_Links.map((link, index) => (
+          <li key={index} className='relative mb-4'>
+            <div
+              className={`font-medium rounded-md py-2 px-5 hover:bg-gray-100 hover:text-indigo-500 ${activeLink === index ? 'bg-indigo-100 text-indigo-500' : ''}`}
+              onClick={() => handleLinkClick(index)}
+            >
+              <div className='flex items-center justify-between'>
+                <Link to={link.path || '#'} className='flex items-center justify-center md:justify-start md:space-x-5'>
+                  <span className='text-indigo-500'>{link.icon}</span>
+                  <span className='text-sm text-gray-500 md:flex hidden'>{link.name}</span>
+                </Link>
+              </div>
             </div>
-          </div>
-
-        </li>
-      ))}
-    </ul>
-    <div className='w-full absolute bottom-5 left-0 px-4 py-4 text-center cursor-pointer'>
-      {/* <p className='flex space-x-2 text-xs text-white py-2 px-5 bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full'>
-        <span>?</span><span>Need help</span>
-      </p> */}
+          </li>
+        ))}
+      </ul>
+      <div className='w-full absolute bottom-5 left-0 px-4 py-4 text-center cursor-pointer'>
+        {/* Additional content can go here */}
+      </div>
     </div>
-  </div>
   );
 }
 

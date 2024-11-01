@@ -18,9 +18,9 @@ import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { jsPDF } from "jspdf"; // Importing jsPDF
 import html2canvas from "html2canvas";
 import FundedProjectModal from "./Funded_Project_Details";
-import { BarChart, Bar } from 'recharts';
+import {faTrash } from "@fortawesome/free-solid-svg-icons";
 
-function Engineer_Manage_Planned_projects() {
+function AdminManageStakeholder_Application() {
   const [projectData, setProjectData] = useState([]);
   const [unplannedProjects, setUnplannedProjects] = useState([]);
   const [planners, setPlanners] = useState([]);
@@ -53,7 +53,7 @@ function Engineer_Manage_Planned_projects() {
       console.log("User ID:", userId);
 
       const response = await fetch(
-        `http://127.0.0.1:8000/engineer_application/engineer/`,
+        `http://127.0.0.1:8000/funded_project/projects/`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -78,9 +78,9 @@ function Engineer_Manage_Planned_projects() {
         console.log("Monthly Income:", project.created_by.monthly_income);
         console.groupEnd();
         console.group("Project Details:");
-        // console.log("Duration:", project.funded_project.duration);
-        // console.log("Cost:", project.funded_project.cost);
-        // console.log("Location:", project.funded_project.location);
+        console.log("Duration:", project.funded_project.duration);
+        console.log("Cost:", project.funded_project.cost);
+        console.log("Location:", project.funded_project.location);
         console.groupEnd();
         console.groupEnd();
       });
@@ -152,9 +152,9 @@ function Engineer_Manage_Planned_projects() {
   const COLORS = ["#36A2EB", "#FF6384", "#63ffc1"];
 
   const filteredData = projectData.filter((project) => {
-    const field = project?.project?.funded_project?.project?.field || ""; // Fallback to empty string if undefined
+    const field = project?.funded_project?.project?.field || ""; // Fallback to empty string if undefined
     const email = project?.funded_project?.planned_by?.email || ""; // Correct the access to planned_by
-    const location = project?.project?.funded_project?.location || ""; // Fallback to empty string if undefined
+    const location = project?.funded_project?.location || ""; // Fallback to empty string if undefined
     const status = project?.status || "";
 
     return (
@@ -254,11 +254,37 @@ function Engineer_Manage_Planned_projects() {
     }
   };
 
+
+  const handleDeleteApplication = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this application?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/funded_project/delete/${id}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete project");
+      }
+
+      setProjectData(projectData.filter((project) => project.id !== id));
+      alert("Project deleted successfully!");
+    } catch (err) {
+      console.error("Error deleting project:", err);
+      alert("Failed to delete project");
+    }
+  };
+
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black text-center">
-        These are the projects you have decided to invest in for them to be
-        implemented
+        Manage Stakeholders Applications
       </h1>
       {/* <Link
         className="bg-blue-500 text-white py-2 px-4 rounded mb-4"
@@ -269,15 +295,15 @@ function Engineer_Manage_Planned_projects() {
 
       <br />
 
-      <div className="mb-4 flex justify-end py-2 w-64">
+      <div className="mb-4 flex justify-between py-4">
         <input
           type="text"
           value={searchQuery}
           onChange={handleSearchChange}
-          placeholder="Search by project, location, status..."
+          placeholder="Search by email or location..."
           className="border rounded py-2 px-3 text-gray-700 w-full max-w-md"
         />
-        {/* <button
+        <button
           onClick={downloadCSV}
           className="bg-green-500 text-white py-2 px-4 rounded"
         >
@@ -288,7 +314,7 @@ function Engineer_Manage_Planned_projects() {
           className="bg-blue-500 text-white py-2 px-4 rounded mr-4"
         >
           Download PDF
-        </button> */}
+        </button>
       </div>
 
       <div className="overflow-x-auto">
@@ -296,67 +322,71 @@ function Engineer_Manage_Planned_projects() {
           <thead className="bg-blue-700 text-white">
             <tr>
               {/* <th className="p-2">Email</th> */}
-              <th className="py-2">Project</th>
-              <th className="y-2">Duration</th>
-              <th className="py-2">Cost</th>
+              <th className="py-2">Duration</th>
+              <th className="y-2">Cost</th>
               <th className="py-2">Location</th>
               <th className="py-2">Status</th>
-              {/* <th className="py-2">Action</th> */}
+              <th className="py-2">Monthly Income</th>
+              <th className="py-2">Action</th>
             </tr>
           </thead>
           <tbody>
-  {currentProjects.map((project) => (
-    <tr key={project.id} className="hover:bg-gray-50">
-      {/* Display project title */}
-      <td className="p-2 ml-4 text-gray-700">
-        {project?.project?.funded_project?.project?.field || "N/A"}
-      </td>
-      {/* Duration in months */}
-      <td className="p-2 text-gray-700">
-        {project?.project?.funded_project?.duration || "N/A"} months
-      </td>
-      {/* Cost */}
-      <td className="p-2 text-gray-700">
-        {project?.project?.funded_project?.cost || "N/A"} frw
-      </td>
-      {/* Location */}
-      <td className="p-2 text-gray-700">
-        {project?.project?.funded_project?.location || "N/A"}
-      </td>
-      {/* Status */}
-      <td className="p-2 text-gray-700">
-        <span
-          className={`px-2 py-1 rounded-full text-sm ${
-            project?.status === "accepted"
-              ? "bg-green-100 text-green-800"
-              : project?.status === "rejected"
-              ? "bg-red-100 text-red-800"
-              : "bg-yellow-100 text-yellow-800"
-          }`}
-        >
-          {project?.status || "pending"}
-        </span>
-      </td>
-      {/* Monthly income of stakeholder */}
-      {/* <td className="p-2 text-gray-700">
-        {project?.project?.created_by?.monthly_income || "N/A"}
-      </td> */}
-      {/* <td>
-        <button
-          onClick={() => fetchFundedProjectDetails(project.project.id)}
-          style={{
-            border: "none",
-            background: "none",
-            cursor: "pointer",
-          }}
-        >
-          <FontAwesomeIcon className="text-blue-500" icon={faEye} />
-        </button>
-      </td> */}
-    </tr>
-  ))}
-</tbody>
+            {currentProjects.map((project) => (
+              <tr key={project.id} className="hover:bg-gray-50">
+                {/* <td className="p-2 text-gray-700">
+                  {project.created_by?.email}
+                </td> */}
+                <td className="p-2 text-gray-700">
+                  {project.funded_project?.duration} months
+                </td>
+                <td className="p-2 text-gray-700">
+                  {project.funded_project?.cost} frw
+                </td>
+                <td className="p-2 text-gray-700">
+                  {project.funded_project?.location}
+                </td>
+                <td className="p-2 text-gray-700">
+                  <span
+                    className={`px-2 py-1 rounded-full text-sm ${
+                      project.status === "accepted"
+                        ? "bg-green-100 text-green-800"
+                        : project.status === "rejected"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {project.status || "pending"}
+                  </span>
+                </td>
+                <td className="p-2 text-gray-700">
+                  {project.created_by?.monthly_income}
+                </td>
+                <td>
+                  <button
+                    onClick={() => fetchFundedProjectDetails(project.id)}
+                    style={{
+                      border: "none",
+                      background: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <FontAwesomeIcon className="text-blue-500" icon={faEye} />
+                  </button>
 
+                  <button
+                    onClick={() => handleDeleteApplication(project.id)}
+                    style={{
+                      border: "none",
+                      background: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <FontAwesomeIcon className="text-red-500 ml-6" icon={faTrash} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
 
@@ -378,67 +408,109 @@ function Engineer_Manage_Planned_projects() {
       </div>
 
       {/* Charts Section */}
-    <div className="flex flex-col md:flex-row justify-center mt-10 space-y-8 md:space-y-0">
-      {/* Status Distribution Area Chart */}
-      <div className="w-full md:w-1/2 p-4">
-        <h2 className="text-center font-semibold text-lg mb-2 text-blue-700">
-          Status Distribution Over Time
-        </h2>
-        <div className="w-full h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={chartData}
-              margin={{
-                top: 10,
-                right: 30,
-                left: 0,
-                bottom: 0,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis tickFormatter={formatYAxis} allowDecimals={false} domain={[0, "auto"]} />
-              <Tooltip formatter={(value) => Math.floor(value)} />
-              <Legend />
-              <Area type="monotone" dataKey="accepted" stackId="1" stroke="#36A2EB" fill="#36A2EB" fillOpacity={0.6} />
-              <Area type="monotone" dataKey="rejected" stackId="1" stroke="#FF6384" fill="#FF6384" fillOpacity={0.6} />
-              <Area type="monotone" dataKey="pending" stackId="1" stroke="#63ffc1" fill="#63ffc1" fillOpacity={0.6} />
-            </AreaChart>
-          </ResponsiveContainer>
+      <div className="flex flex-col md:flex-row justify-center mt-10 space-y-8 md:space-y-0">
+        {/* Status Distribution Area Chart */}
+        <div className="w-full md:w-1/2 p-4">
+          <h2 className="text-center font-semibold text-lg mb-2 text-blue-700">
+            Status Distribution Over Time
+          </h2>
+          <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={chartData}
+                margin={{
+                  top: 10,
+                  right: 30,
+                  left: 0,
+                  bottom: 0,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis
+                  tickFormatter={formatYAxis}
+                  allowDecimals={false}
+                  domain={[0, "auto"]}
+                />
+                <Tooltip formatter={(value) => Math.floor(value)} />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="accepted"
+                  stackId="1"
+                  stroke="#36A2EB"
+                  fill="#36A2EB"
+                  fillOpacity={0.6}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="rejected"
+                  stackId="1"
+                  stroke="#FF6384"
+                  fill="#FF6384"
+                  fillOpacity={0.6}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="pending"
+                  stackId="1"
+                  stroke="#63ffc1"
+                  fill="#63ffc1"
+                  fillOpacity={0.6}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Trend Line Chart */}
+        <div className="w-full md:w-1/2 p-4">
+          <h2 className="text-center font-semibold text-lg mb-2 text-blue-700">
+            Project Status Trends
+          </h2>
+          <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{
+                  top: 10,
+                  right: 30,
+                  left: 0,
+                  bottom: 0,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis
+                  tickFormatter={formatYAxis}
+                  allowDecimals={false}
+                  domain={[0, "auto"]}
+                />
+                <Tooltip formatter={(value) => Math.floor(value)} />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="accepted"
+                  stroke="#36A2EB"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="rejected"
+                  stroke="#FF6384"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="pending"
+                  stroke="#63ffc1"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
-
-     {/* Project Status Distribution (Histogram) */}
-<div className="w-full md:w-1/2 p-4">
-  <h2 className="text-center font-semibold text-lg mb-2 text-blue-700">
-    Project Status Distribution (Histogram)
-  </h2>
-  <div className="w-full h-[300px]">
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart
-        data={chartData}
-        margin={{
-          top: 10,
-          right: 30,
-          left: 0,
-          bottom: 0,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis tickFormatter={(value) => Math.floor(value)} allowDecimals={false} />
-        <Tooltip formatter={(value) => Math.floor(value)} />
-        <Legend />
-        <Bar dataKey="accepted" fill="#36A2EB" name="Accepted Projects" />
-        <Bar dataKey="rejected" fill="#FF6384" name="Rejected Projects" />
-        <Bar dataKey="pending" fill="#63ffc1" name="Pending Projects" />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-</div>
-
-    </div>
-
 
       {showDetailsModal && (
         <FundedProjectModal
@@ -451,6 +523,4 @@ function Engineer_Manage_Planned_projects() {
   );
 }
 
-
-
-export default Engineer_Manage_Planned_projects;
+export default AdminManageStakeholder_Application;

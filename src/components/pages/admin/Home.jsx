@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Line } from 'react-chartjs-2';
+import { Line, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import './Home.css'; // Ensure this path is correct
 
@@ -9,6 +9,9 @@ function Home() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [institutionsData, setInstitutionsData] = useState([]);
   const [usersData, setUsersData] = useState([]);
+  const [projectData, setProjectData] = useState([]);
+
+  const accessToken = JSON.parse(localStorage.getItem("userData"))?.access;
 
   // Function to get the token from local storage
   const getToken = () => {
@@ -23,25 +26,17 @@ function Home() {
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         }
 
-        // Fetch institutions data
         const institutionsRes = await axios.get('http://127.0.0.1:8000/engineer/engineers/');
-        console.log('Institutions Data:', institutionsRes.data);
-        if (Array.isArray(institutionsRes.data)) {
-          setInstitutionsData(institutionsRes.data);
-        } else {
-          console.error('Expected engineers data to be an array');
-        }
+        setInstitutionsData(institutionsRes.data);
 
-        // Fetch users data
         const usersRes = await axios.get('http://127.0.0.1:8000/users/');
-        console.log('Users Data:', usersRes.data);
-        if (usersRes.data && Array.isArray(usersRes.data.users)) {
-          setUsersData(usersRes.data.users);
-          setTotalUsers(usersRes.data.users.length);
-        } else {
-          console.error('Expected users data to be an array');
-        }
+        setUsersData(usersRes.data.users);
+        setTotalUsers(usersRes.data.users.length);
 
+        const projectRes = await axios.get('http://127.0.0.1:8000/project/projects/', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        setProjectData(projectRes.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -85,20 +80,17 @@ function Home() {
       }
     });
 
-    // Prepare datasets for each role
-    const datasets = Object.keys(roleCounts).map(role => {
-      const dataPoints = dates.map(date => roleCounts[role][date] || 0); // Use 0 if no users on that date
-      return {
-        label: role,
-        data: dataPoints,
-        fill: false,
-        borderColor: getRandomColor(), // Random color for each role
-      };
-    });
+    // Prepare the datasets for the chart
+    const datasets = Object.keys(roleCounts).map(role => ({
+      label: role,
+      data: dates.map(date => Math.floor(roleCounts[role][date] || 0)), // Ensure positive integers without decimals
+      borderColor: getRandomColor(),
+      fill: false,
+    }));
 
     return {
-      labels: Array.from(new Set(dates)), // Unique dates
-      datasets: datasets,
+      labels: dates,
+      datasets,
     };
   };
 
@@ -111,24 +103,71 @@ function Home() {
     return color;
   };
 
-  const usersChartData = formatDataForLineChart(usersData);
+  // Function to format data for histogram chart
+  const formatDataForHistogram = (data) => {
+    const labels = [...new Set(data.map(item => item.status))]; // Unique project statuses
+    const counts = labels.map(label => data.filter(item => item.status === label).length);
+
+    return {
+      labels,
+      datasets: [{
+        label: 'Project Status',
+        data: counts,
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+      }],
+    };
+  };
+
+  // Function to format data for planned projects chart
+  const formatDataForPlannedProjects = (data) => {
+    const plannedCounts = {};
+    
+    data.forEach(item => {
+      const date = new Date(item.created_at).toLocaleDateString(); // Assuming planned_date exists
+      if (!plannedCounts[date]) {
+        plannedCounts[date] = 0;
+      }
+      plannedCounts[date] += 1;
+    });
+
+    const labels = Object.keys(plannedCounts);
+    const counts = Object.values(plannedCounts).map(count => Math.floor(count)); // Ensure positive integers
+
+    return {
+      labels,
+      datasets: [{
+        label: 'Planned Projects Over Time',
+        data: counts,
+        borderColor: 'rgba(255, 159, 64, 1)',
+        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+      }],
+    };
+  };
+
+  // Example data for Population Pyramid
+  const labels = ['Applications', 'Projects'];
+  const applicationsCount = usersData.length; // or whatever data source you have
+  const projectsCount = projectData.length; // Assuming projectData contains your projects
+  
+  const populationPyramidData = {
+    labels,
+    datasets: [
+      {
+        label: 'Applications',
+        data: [applicationsCount, projectsCount],
+        backgroundColor: 'rgba(153, 102, 255, 0.6)',
+      },
+    ],
+  };
 
   return (
     <div className='mt-20'>
       <h2 className='text-lg font-semibold mb-4 text-center text-black'>Reports</h2>
 
-      <div className='flex flex-wrap justify-center'>
-        {/* Total Users Card */}
-        <div className='bg-white rounded-lg shadow-md p-4 m-4 max-w-sm'>
-          <h3 className='text-md font-semibold text-black mb-2'>Total Users</h3>
-          <p className='text-xl text-red-700 font-bold'>{totalUsers}</p>
-        </div>
-      </div>
-
       <div className='chart-container'>
         <div>
           <h3 className='text-md font-semibold text-black mb-2 text-center'>Users Over Time by Role</h3>
-          <Line data={usersChartData} />
+          <Line data={formatDataForLineChart(usersData)} />
         </div>
 
         <div className='w-1/2 h-min'>
@@ -139,6 +178,21 @@ function Home() {
         <div className='w-1/2 h-min'>
           <h3 className='text-md font-semibold text-black mb-2 text-center'>Engineers Over Time</h3>
           <Line data={formatDataForLineChart(institutionsData)} />
+        </div>
+
+        <div className='w-1/2 h-min'>
+          <h3 className='text-md font-semibold text-black mb-2 text-center'>Project Status Over Time</h3>
+          <Bar data={formatDataForHistogram(projectData)} />
+        </div>
+
+        <div className='w-1/2 h-min'>
+          <h3 className='text-md font-semibold text-black mb-2 text-center'>Planned Projects Over Time by Status</h3>
+          <Line data={formatDataForPlannedProjects(projectData)} />
+        </div>
+
+        <div className='w-1/2 h-min'>
+          <h3 className='text-md font-semibold text-black mb-2 text-center'>Projects vs. Engineer Applications</h3>
+          <Bar data={populationPyramidData} options={{ indexAxis: 'y' }} />
         </div>
       </div>
     </div>

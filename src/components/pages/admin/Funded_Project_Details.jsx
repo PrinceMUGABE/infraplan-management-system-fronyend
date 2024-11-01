@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from 'react';
-import axios from 'axios';
 
 const FundedProjectModal = ({ show, handleClose, projectDetails }) => {
   if (!show || !projectDetails) return null;
@@ -16,32 +15,67 @@ const FundedProjectModal = ({ show, handleClose, projectDetails }) => {
     });
   };
 
-  // Function to handle the Apply button click
-  const handleApply = async () => {
-    const token = localStorage.getItem('token'); // Retrieve token from local storage
+  // Function to accept the funded project
+  const handleAccept = async () => {
+    const token = JSON.parse(localStorage.getItem("userData"))?.access;
     if (!token) {
-      alert('User is not authenticated');
+      alert("User not authenticated");
       return;
     }
-
+  
     try {
-      const response = await axios.post(
-        'http://127.0.0.1:8000/engineer_application/create/', 
-        { project_id: projectDetails.id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Send token in headers
-          },
+      const response = await fetch(`http://127.0.0.1:8000/funded_project/accept/${projectDetails.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         }
-      );
-      console.log(response.data); // Log response data to the console
-      alert('Application submitted successfully!');
-      handleClose(); // Close the modal on successful application
+      });
+      
+      if (response.ok) {
+        alert("Project accepted successfully.");
+        handleClose();
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to accept project: ${errorData.error || 'Unknown error'}`);
+      }
     } catch (error) {
-      console.error('Error submitting application:', error.response?.data || error.message);
-      alert(`Error: ${error.response?.data?.error || "An error occurred while applying"}`);
+      console.error("Error accepting project:", error);
+      alert("An error occurred while accepting the project.");
     }
   };
+  
+
+  // Function to reject the funded project
+  const handleReject = async () => {
+    const token = JSON.parse(localStorage.getItem("userData"))?.access;
+    if (!token) {
+      alert("User not authenticated");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/funded_project/reject/${projectDetails.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+  
+      if (response.ok) {
+        alert("Project rejected successfully.");
+        handleClose();
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to reject project: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error("Error rejecting project:", error);
+      alert("An error occurred while rejecting the project.");
+    }
+  };
+  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -121,10 +155,16 @@ const FundedProjectModal = ({ show, handleClose, projectDetails }) => {
         {/* Modal Footer */}
         <div className="flex justify-between p-6 border-t border-gray-200">
           <button
-            onClick={handleApply} // Attach the apply handler
+            onClick={handleAccept}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-gray-600 transition-colors"
           >
-            Apply
+            Accept
+          </button>
+          <button
+            onClick={handleReject}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-gray-600 transition-colors"
+          >
+            Reject
           </button>
           <button
             onClick={handleClose}

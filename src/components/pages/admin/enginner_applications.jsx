@@ -14,13 +14,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { jsPDF } from "jspdf"; // Importing jsPDF
 import html2canvas from "html2canvas";
-import FundedProjectModal from "./Funded_Project_Details";
+import FundedProjectModal from "./enginnerApplicationDetails";
 import { BarChart, Bar } from 'recharts';
+import { MdOutlineDeleteForever } from "react-icons/md";
 
-function Engineer_Manage_Planned_projects() {
+function AdminManageEngineer_Application() {
   const [projectData, setProjectData] = useState([]);
   const [unplannedProjects, setUnplannedProjects] = useState([]);
   const [planners, setPlanners] = useState([]);
@@ -37,7 +38,7 @@ function Engineer_Manage_Planned_projects() {
     file: null,
   });
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedEngineer, setselectedEngineer] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [planDetails, setPlanDetails] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
@@ -53,7 +54,7 @@ function Engineer_Manage_Planned_projects() {
       console.log("User ID:", userId);
 
       const response = await fetch(
-        `http://127.0.0.1:8000/engineer_application/engineer/`,
+        `http://127.0.0.1:8000/engineer_application/all/`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -235,7 +236,7 @@ function Engineer_Manage_Planned_projects() {
   const fetchFundedProjectDetails = async (id) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/funded_project/${id}/`,
+        `http://127.0.0.1:8000/engineer_application/${id}/`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -245,9 +246,9 @@ function Engineer_Manage_Planned_projects() {
 
       if (!response.ok) throw new Error("Failed to fetch plan details");
 
-      const selectedProject = await response.json();
-      console.log("Fetched Plan Details:", selectedProject);
-      setPlanDetails(selectedProject);
+      const selectedEngineer = await response.json();
+      console.log("Fetched Plan Details:", selectedEngineer);
+      setPlanDetails(selectedEngineer);
       setShowDetailsModal(true);
     } catch (err) {
       console.error("Error fetching plan details:", err);
@@ -257,8 +258,7 @@ function Engineer_Manage_Planned_projects() {
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black text-center">
-        These are the projects you have decided to invest in for them to be
-        implemented
+        Manage Project Enginner Applications
       </h1>
       {/* <Link
         className="bg-blue-500 text-white py-2 px-4 rounded mb-4"
@@ -269,17 +269,17 @@ function Engineer_Manage_Planned_projects() {
 
       <br />
 
-      <div className="mb-4 flex justify-end py-2 w-64">
+      <div className="mb-4 flex justify-between py-2 w-full">
         <input
           type="text"
           value={searchQuery}
           onChange={handleSearchChange}
           placeholder="Search by project, location, status..."
-          className="border rounded py-2 px-3 text-gray-700 w-full max-w-md"
+          className="border rounded py-2 px-3 text-gray-700 w-64 max-w-md mr-10"
         />
-        {/* <button
+        <button
           onClick={downloadCSV}
-          className="bg-green-500 text-white py-2 px-4 rounded"
+          className="bg-green-500 text-white py-2 px-4 rounded mr-10"
         >
           Download CSV
         </button>
@@ -288,7 +288,7 @@ function Engineer_Manage_Planned_projects() {
           className="bg-blue-500 text-white py-2 px-4 rounded mr-4"
         >
           Download PDF
-        </button> */}
+        </button>
       </div>
 
       <div className="overflow-x-auto">
@@ -301,7 +301,7 @@ function Engineer_Manage_Planned_projects() {
               <th className="py-2">Cost</th>
               <th className="py-2">Location</th>
               <th className="py-2">Status</th>
-              {/* <th className="py-2">Action</th> */}
+              <th className="py-2">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -341,18 +341,29 @@ function Engineer_Manage_Planned_projects() {
       {/* <td className="p-2 text-gray-700">
         {project?.project?.created_by?.monthly_income || "N/A"}
       </td> */}
-      {/* <td>
+      <td>
         <button
-          onClick={() => fetchFundedProjectDetails(project.project.id)}
+          onClick={() => fetchFundedProjectDetails(project.id)}
+          style={{
+            border: "none",
+            background: "none",
+            cursor: "pointer",
+       
+          }}
+        >
+          <FontAwesomeIcon className="text-blue-500" icon={faEye} />
+        </button>
+        <button
+          onClick={() => fetchFundedProjectDetails(project.id)}
           style={{
             border: "none",
             background: "none",
             cursor: "pointer",
           }}
         >
-          <FontAwesomeIcon className="text-blue-500" icon={faEye} />
+          <FontAwesomeIcon className="text-red-500 ml-5" icon={faTrash } />
         </button>
-      </td> */}
+      </td>
     </tr>
   ))}
 </tbody>
@@ -453,4 +464,4 @@ function Engineer_Manage_Planned_projects() {
 
 
 
-export default Engineer_Manage_Planned_projects;
+export default AdminManageEngineer_Application;

@@ -89,6 +89,9 @@ function Enginner_Home() {
     }
   };
 
+
+ 
+
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black text-center">
@@ -123,15 +126,15 @@ function Enginner_Home() {
             <p className="text-black">
               <strong>Location:</strong> {project.funded_project?.location}
             </p>
-            <p className="text-black">
+            {/* <p className="text-black">
               <strong>Status:</strong>
               <span className="ml-2 px-2 py-1 rounded-full text-sm bg-green-100 text-green-800">
                 {project.status || "accepted"}
               </span>
-            </p>
-            <p className="text-black">
+            </p> */}
+            {/* <p className="text-black">
               <strong>Monthly Income:</strong> {project.created_by?.monthly_income}
-            </p>
+            </p> */}
             <button
               onClick={() => fetchFundedProjectDetails(project.id)}
               className="mt-3 text-blue-600 underline flex items-center"

@@ -38,6 +38,8 @@ import Engineer_Manage_Planned_projects from "./components/pages/engineer/Planne
 import PlannerManageProjectPlans from "./components/pages/planner/MyProjectPlans.jsx";
 
 import StakeholderManageFundedProjects from "./components/pages/stakeholder/MyProjects.jsx";
+import AdminManageStakeholder_Application from "./components/pages/admin/stakeholder_applications.jsx";
+import AdminManageEngineer_Application from "./components/pages/admin/enginner_applications.jsx"
 
 
 
@@ -93,6 +95,8 @@ const App = () => {
             <Route path="/admin/editProject/:id" element={<Editproject />} />
 
             <Route path="/admin/plannedProjects" element={<ManageProjectsInPlan />} />
+            <Route path="/admin/stakeholder_applications" element={<AdminManageStakeholder_Application />} />
+            <Route path="/admin/engineerApplications" element={<AdminManageEngineer_Application />} />
 
   
           </Route>
