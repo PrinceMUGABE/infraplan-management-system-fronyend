@@ -40,6 +40,12 @@ import PlannerManageProjectPlans from "./components/pages/planner/MyProjectPlans
 import StakeholderManageFundedProjects from "./components/pages/stakeholder/MyProjects.jsx";
 import AdminManageStakeholder_Application from "./components/pages/admin/stakeholder_applications.jsx";
 import AdminManageEngineer_Application from "./components/pages/admin/enginner_applications.jsx"
+import PlannerRegistrationPage from "./components/pages/planner/Registration.jsx";
+import ProjectOwners_ManageProjects from "./components/pages/project_owner/My_Projects.jsx";
+import Project_Owner_Layout from "./components/pages/project_owner/Layout.jsx";
+import EngineerRegistrationPage from "./components/pages/engineer/Engineer_Registration.jsx";
+import StakeholderRegistrationPage from "./components/pages/stakeholder/Registration_page.jsx";
+
 
 
 
@@ -70,6 +76,12 @@ const App = () => {
           <Route path="/verifypassword" element={<VerifyPassword />} />
           <Route path="/passwordreset"  element={<ResetPassword />} />
           <Route path="/changePassword" element={<ChangePassword />} />
+
+
+          
+          <Route path="/user_registration/planner" element={<PlannerRegistrationPage />} />
+          <Route path="/user_registration/engineer" element={<EngineerRegistrationPage />} />
+          <Route path="/user_registration/stakeholder" element={<StakeholderRegistrationPage />} />
 
            {/* End Home view */}
 
@@ -103,11 +115,22 @@ const App = () => {
 
            {/* End of Admin route*/}
 
+          {/* Start of Planner routes route*/}
+          <Route path="/project_owner" element={<PrivateRoute><Project_Owner_Layout /></PrivateRoute>} >
+              <Route index element={<ProjectOwners_ManageProjects />} />
+              {/* <Route path="/project_owner/projects" element={<ProjectOwners_ManageProjects />} /> */}
+              
+        
+           </Route>
+
+
+
 
             {/* Start of Planner routes route*/}
             <Route path="/planner" element={<PrivateRoute><Planner_Layout /></PrivateRoute>} >
               <Route index element={<PlannerHome />} />
               <Route path="/planner/projects" element={<PlannerManageProjectPlans />} />
+              
         
            </Route>
            {/* Ends of Planner routes route*/}

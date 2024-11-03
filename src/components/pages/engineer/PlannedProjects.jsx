@@ -257,8 +257,7 @@ function Engineer_Manage_Planned_projects() {
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black text-center">
-        These are the projects you have decided to invest in for them to be
-        implemented
+        Welcome Back Engineer, <span className="text-red-500">{user.phone}</span>
       </h1>
       {/* <Link
         className="bg-blue-500 text-white py-2 px-4 rounded mb-4"

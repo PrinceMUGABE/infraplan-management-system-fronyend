@@ -13,7 +13,8 @@ const PrivateRoute = ({ children }) => {
     admin: ['/admin'],
     planner: ['/planner'],
     stakeholder: ['/stakeholder'],
-    engineer: ['/engineer']
+    engineer: ['/engineer'],
+    project_owner: ['/project_owner']
   };
 
   // If no authentication, redirect to login while preserving attempted path
@@ -29,12 +30,7 @@ const PrivateRoute = ({ children }) => {
     path.startsWith(route)
   );
 
-  // If user is trying to access an invalid route for their role,
-  // redirect them to their default dashboard
-  // if (!isValidRouteForRole) {
-  //   // If the path doesn't match any valid route, redirect to their role-based homepage
-  //   return <Navigate to={`/${role}`} replace />;
-  // }
+
 
   return children;
 };
