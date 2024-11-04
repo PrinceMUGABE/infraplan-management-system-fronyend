@@ -321,7 +321,7 @@ function AdminManageStakeholder_Application() {
         <table className="min-w-full border border-gray-300">
           <thead className="bg-blue-700 text-white">
             <tr>
-              {/* <th className="p-2">Email</th> */}
+              <th className="p-2">Stakeholder</th>
               <th className="py-2">Duration</th>
               <th className="y-2">Cost</th>
               <th className="py-2">Location</th>
@@ -333,9 +333,9 @@ function AdminManageStakeholder_Application() {
           <tbody>
             {currentProjects.map((project) => (
               <tr key={project.id} className="hover:bg-gray-50">
-                {/* <td className="p-2 text-gray-700">
-                  {project.created_by?.email}
-                </td> */}
+                <td className="p-2 text-gray-700">
+                  {project.created_by?.created_by?.phone}
+                </td>
                 <td className="p-2 text-gray-700">
                   {project.funded_project?.duration} months
                 </td>

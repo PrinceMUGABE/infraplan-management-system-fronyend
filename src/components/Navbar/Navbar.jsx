@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { HiMenuAlt3, HiMenuAlt1 } from "react-icons/hi";
 import ResponsiveMenu from "./ResponsiveMenu";
-import Logo from "../../assets/pictures/RDB_logo.png";
+import Logo from "../../assets/pictures/loda_picture.jpg";
 import DarkMode from "./DarkMode";
 import { Link } from "react-router-dom";
 
