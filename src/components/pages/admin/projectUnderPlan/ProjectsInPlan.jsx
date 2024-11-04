@@ -272,13 +272,15 @@ const handleRejectProject = async (projectId) => {
 
   const filteredData = projectData.filter((project) => {
     const field = project?.project?.field || ""; // Fallback to empty string if undefined
-    const email = project?.planned_by?.email || ""; // Correct the access to planned_by
+    const email = project?.planned_by?.created_by?.phone || ""; // Correct the access to planned_by
     const location = project?.location || ""; // Fallback to empty string if undefined
+    const status = project?.status || "";
 
     return (
       field.toLowerCase().includes(searchQuery.toLowerCase()) ||
       email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      location.toLowerCase().includes(searchQuery.toLowerCase())
+      location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      status.toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
 
@@ -425,7 +427,7 @@ const handleRejectProject = async (projectId) => {
           {currentProjects.map((project) => (
             <tr key={project.id}>
               <td className="p-2 text-gray-700">{project.project.field}</td>
-              <td className="p-2 text-gray-700">{project.planned_by.email}</td>
+              <td className="p-2 text-gray-700">{project.planned_by?.created_by?.phone}</td>
               <td className="p-2 text-gray-700">{project.duration}</td>
               <td className="p-2 text-gray-700">{project.cost}</td>
               <td className="p-2 text-gray-700">{project.location}</td>

@@ -154,13 +154,13 @@ function AdminManageEngineer_Application() {
 
   const filteredData = projectData.filter((project) => {
     const field = project?.project?.funded_project?.project?.field || ""; // Fallback to empty string if undefined
-    const email = project?.funded_project?.planned_by?.email || ""; // Correct the access to planned_by
+    const phone = project?.created_by?.created_by?.phone || ""; // Correct the access to planned_by
     const location = project?.project?.funded_project?.location || ""; // Fallback to empty string if undefined
     const status = project?.status || "";
 
     return (
       field.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
       location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       status.toLowerCase().includes(searchQuery.toLowerCase())
     );
