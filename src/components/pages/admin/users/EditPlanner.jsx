@@ -31,7 +31,7 @@ function EditPlanner() {
       }
 
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/planner/planner/${id}/`, axiosConfig);
+        const response = await axios.get(`http://127.0.0.1:8000/planner/${id}/`, axiosConfig);
         setPlanner(response.data);
       } catch (err) {
         console.error("Error fetching planner:", err);

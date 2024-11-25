@@ -25,9 +25,9 @@ const Header = () => {
           <li className='md:mr-10'>
             <Link to="/stakeholder/projects" className='hover:text-gray-300'>My Projects</Link>
           </li>
-          <li className='md:mr-10'>
+          {/* <li className='md:mr-10'>
             <Link to="/profile" className='hover:text-gray-300'>Profile</Link>
-          </li>
+          </li> */}
           <li>
             <Link to="/" className='hover:text-gray-300'>Logout</Link>
           </li>

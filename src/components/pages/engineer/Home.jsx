@@ -41,7 +41,6 @@ function Enginner_Home() {
     setSearchQuery(e.target.value);
   };
 
-  // Filter for search query and only display projects with "accepted" status
   const filteredData = projectData.filter((project) => {
     const field = project?.funded_project?.project?.field || "";
     const email = project?.funded_project?.planned_by?.email || "";
@@ -57,13 +56,9 @@ function Enginner_Home() {
     );
   });
 
-  // Pagination
   const indexOfLastProject = currentPage * projectsPerPage;
   const indexOfFirstProject = indexOfLastProject - projectsPerPage;
-  const currentProjects = filteredData.slice(
-    indexOfFirstProject,
-    indexOfLastProject
-  );
+  const currentProjects = filteredData.slice(indexOfFirstProject, indexOfLastProject);
   const totalPages = Math.ceil(filteredData.length / projectsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -79,19 +74,19 @@ function Enginner_Home() {
         }
       );
 
-      if (!response.ok) throw new Error("Failed to fetch plan details");
+      if (!response.ok) throw new Error("Failed to fetch project details");
 
       const selectedProject = await response.json();
       setSelectedProject(selectedProject);
       setShowDetailsModal(true);
     } catch (err) {
-      console.error("Error fetching plan details:", err);
+      console.error("Error fetching project details:", err);
     }
   };
 
 
- 
 
+  
   return (
     <>
       <h1 className="text-2xl font-bold mb-4 text-black text-center">

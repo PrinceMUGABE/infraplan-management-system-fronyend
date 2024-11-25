@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Modal from "./Modal";
 import { Link } from "react-router-dom";
+import { jsPDF } from "jspdf";
 
 function PlannedProjects() {
   const [plannedProjects, setPlannedProjects] = useState([]);
@@ -108,48 +109,95 @@ function PlannedProjects() {
   };
 
   // Handle funding application
-const applyForFunding = async () => {
-  if (!selectedProject) return;
-  setErrorMessage("");
-  setSuccessMessage("");
+  const applyForFunding = async () => {
+    if (!selectedProject) return;
+    setErrorMessage("");
+    setSuccessMessage("");
 
-  try {
-    // Construct the body to include project_id and user token
-    const body = {
-      project_id: selectedProject.project.id,
-      user_token: accessToken, // Include the user's access token
-    };
+    try {
+      const body = {
+        project_id: selectedProject.project.id,
+        user_token: accessToken,
+      };
 
-    // Log the submitted data to the console
-    console.log("Submitting funding application with data:", body);
+      const response = await fetch("http://127.0.0.1:8000/funded_project/create/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(body),
+      });
 
-    const response = await fetch("http://127.0.0.1:8000/funded_project/create/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(body),
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to apply for funding");
+      }
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to apply for funding");
+      const responseData = await response.json();
+      setSuccessMessage("Application successful!");
+      setModalVisible(false); // Close modal after successful application
+    } catch (error) {
+      console.error("Error applying for funding:", error);
+      setErrorMessage(error.message || "Failed to apply for funding. Please try again.");
     }
+  };
 
-    const responseData = await response.json();
-    setSuccessMessage("Application successful!");
-    setModalVisible(false); // Close modal after successful application
-  } catch (error) {
-    console.error("Error applying for funding:", error);
-    setErrorMessage(error.message || "Failed to apply for funding. Please try again.");
-  }
-};
-
-
+  // Generate and download the PDF
+  const downloadProjectPlanPDF = () => {
+    const doc = new jsPDF();
+  
+    // Start adding project details to the PDF
+    let yPosition = 20; // Starting Y position for text
+    let xPosition = 200;
+  
+    // Add project details text
+    doc.text(`Field: ${selectedProject.project.field}`, 20, yPosition);
+    yPosition += 10; // Increase Y position for next line
+    doc.text(`Status: ${selectedProject.status}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Duration: ${selectedProject.duration} months`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Cost: ${selectedProject.cost} FRW`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Location: ${selectedProject.location}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Planner: ${selectedProject.planned_by.created_by.phone}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Created at: ${selectedProject.created_at}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Description: ${selectedProject.project.description}`, 20, yPosition);
+    yPosition += 20; // Add some space before adding the image
+    xPosition += 200;
+  
+    // If there is an image, add it to the PDF
+    if (selectedProject.image) {
+      const image = new Image();
+      image.src = `data:image/png;base64,${selectedProject.image}`;
+      image.onload = () => {
+        // Add image below text (Y position is already updated)
+        const imageWidth = 100; // Set image width
+        const imageHeight = 100; // Set image height
+  
+        // Make sure the image doesn't overflow the page
+        if (yPosition + imageHeight < 280) {
+          doc.addImage(image, 'PNG', 20, yPosition, imageWidth, imageHeight);
+          yPosition += imageHeight + 10; // Update Y position after adding image
+        } else {
+          // If there's not enough space left, move image to the next page
+          doc.addPage();
+          doc.addImage(image, 'PNG', 20, 20, imageWidth, imageHeight);
+          yPosition = imageHeight + 20; // Update Y position after adding image on new page
+        }
+        doc.save(`${selectedProject.project.field}_plan.pdf`);
+      };
+    } else {
+      doc.save(`${selectedProject.project.field}_plan.pdf`);
+    }
+  };
+  
 
   if (isLoading) return <p>Loading planned projects...</p>;
-  
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -276,14 +324,20 @@ const applyForFunding = async () => {
                 </p>
               </div>
             </div> <br /><br />
-            
-            if (errorMessage) return <p className="text-red-500">{errorMessage}</p>;
 
             <button
               onClick={applyForFunding}
               className="bg-blue-500 text-white font-bold py-2 px-4 mt-4 rounded"
             >
               Apply for Funding
+            </button>
+
+            {/* Download PDF Button */}
+            <button
+              onClick={downloadProjectPlanPDF}
+              className="bg-yellow-500 text-white font-bold py-2 px-4 mt-4 rounded ml-4"
+            >
+              Download as PDF
             </button>
           </div>
         ) : (

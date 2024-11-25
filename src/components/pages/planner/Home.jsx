@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { jsPDF } from "jspdf";
 
 function PlannerHome() {
   const [projectData, setProjectData] = useState([]);
@@ -108,7 +109,7 @@ function PlannerHome() {
       reader.onload = () => {
         try {
           // Remove data URL prefix and get only the base64 string
-          const base64String = reader.result.split(',')[1];
+          const base64String = reader.result.split(",")[1];
           resolve(base64String);
         } catch (error) {
           reject(error);
@@ -129,14 +130,14 @@ function PlannerHome() {
         e.target.value = null;
         return;
       }
-      
+
       // File type validation
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setErrorMessage("Please upload an image file");
         e.target.value = null;
         return;
       }
-      
+
       setFormData({ ...formData, image: file });
       setErrorMessage("");
     }
@@ -145,14 +146,17 @@ function PlannerHome() {
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Validation for numeric fields
     if (name === "duration") {
       if (value === "" || (parseFloat(value) > 0 && parseFloat(value) <= 60)) {
         setFormData({ ...formData, [name]: value });
       }
     } else if (name === "cost") {
-      if (value === "" || (parseFloat(value) > 0 && parseFloat(value) <= 1000000000)) {
+      if (
+        value === "" ||
+        (parseFloat(value) > 0 && parseFloat(value) <= 1000000000)
+      ) {
         setFormData({ ...formData, [name]: value });
       }
     } else {
@@ -214,7 +218,9 @@ function PlannerHome() {
         if (data.error === "Planner profile not found for this user.") {
           setErrorMessage("You must have a planner profile to submit plans.");
         } else if (data.error === "A planner can plan a project only once.") {
-          setErrorMessage("You have already submitted a plan for this project.");
+          setErrorMessage(
+            "You have already submitted a plan for this project."
+          );
         } else {
           setErrorMessage(data.error || "Failed to create project plan.");
         }
@@ -236,7 +242,48 @@ function PlannerHome() {
     handleFetch();
   }, []);
 
-  
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text("Project Details", 20, 20);
+
+    // Add Project details
+    if (selectedProject) {
+      doc.setFontSize(12);
+
+      // Project Owner Information
+      doc.text(
+        `Project Owner: ${selectedProject.created_by.first_name} ${selectedProject.created_by.last_name}`,
+        20,
+        30
+      );
+      doc.text(`Phone: ${selectedProject.created_by.phone}`, 20, 40);
+      doc.text(
+        `Joined: ${new Date(
+          selectedProject.created_by.created_at
+        ).toLocaleDateString()}`,
+        20,
+        50
+      );
+
+      // Project Details
+      doc.text(`Field: ${selectedProject.field}`, 20, 60);
+      doc.text(`Description: ${selectedProject.description}`, 20, 70);
+
+      // You can add more project details as needed
+
+      // Save PDF to local storage
+      const pdfData = doc.output("arraybuffer"); // Get PDF as an array buffer
+      const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfData))); // Convert to base64
+
+      localStorage.setItem("projectDetailsPDF", pdfBase64);
+
+      // Optionally, you can save the PDF to the user's device
+      doc.save(`${selectedProject.field}-project-details.pdf`);
+    }
+  };
 
   return (
     <>
@@ -279,7 +326,9 @@ function PlannerHome() {
             key={index}
             onClick={() => paginate(index + 1)}
             className={`mx-1 px-3 py-1 rounded ${
-              currentPage === index + 1 ? "bg-blue-500 text-white" : "bg-gray-300"
+              currentPage === index + 1
+                ? "bg-blue-500 text-white"
+                : "bg-gray-300"
             }`}
           >
             {index + 1}
@@ -297,7 +346,7 @@ function PlannerHome() {
             {selectedProject && selectedProject.created_by ? (
               <div className="flex flex-col md:flex-row mt-4 overflow-y-auto flex-grow">
                 {/* User Details Section */}
-                <div className=" p-4 rounded md:w-1/2 md:mr-2">
+                <div className="p-4 rounded md:w-1/2 md:mr-2">
                   <h3 className="font-bold text-blue-900">Project Owner</h3>
                   <p className="text-black">
                     <strong>First Name:</strong>{" "}
@@ -328,7 +377,7 @@ function PlannerHome() {
                 </div>
 
                 {/* Project Details Section */}
-                <div className=" p-4 rounded md:w-1/2 md:ml-2">
+                <div className="p-4 rounded md:w-1/2 md:ml-2">
                   <h3 className="font-bold text-blue-900">Project Details</h3>
                   <p className="text-black">
                     <strong>Field:</strong>{" "}
@@ -354,6 +403,14 @@ function PlannerHome() {
               <p>Loading project owner details...</p>
             )}
 
+            {/* Download PDF Button */}
+            <button
+              onClick={handleDownloadPDF}
+              className="mt-4 bg-yellow-500 text-white py-2 px-4 rounded self-center"
+            >
+              Download as PDF
+            </button>
+
             <button
               onClick={() => setShowDetailsModal(false)}
               className="mt-4 bg-red-500 text-white py-2 px-4 rounded self-center"
@@ -372,7 +429,9 @@ function PlannerHome() {
               Plan This Project
             </h2>
             <form className="flex flex-col">
-              <label className="font-bold text-black">How long will the project take (in months)?</label>
+              <label className="font-bold text-black">
+                How long will the project take (in months)?
+              </label>
               <input
                 type="number"
                 name="duration"
@@ -381,7 +440,9 @@ function PlannerHome() {
                 className="mb-4 p-2 border rounded text-gray-700"
               />
 
-              <label className="font-bold text-black">How much will the project take? (FRW)</label>
+              <label className="font-bold text-black">
+                How much will the project take? (FRW)
+              </label>
               <input
                 type="number"
                 name="cost"
@@ -390,7 +451,9 @@ function PlannerHome() {
                 className="mb-4 p-2 border rounded text-gray-700"
               />
 
-              <label className="font-bold text-black">Where will the project be implemented?</label>
+              <label className="font-bold text-black">
+                Where will the project be implemented?
+              </label>
               <input
                 type="text"
                 name="location"

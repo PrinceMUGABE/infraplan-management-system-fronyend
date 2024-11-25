@@ -9,7 +9,6 @@ import Register from "./components/auth/Register.jsx";
 import VerifyPassword from "./components/auth/VerifyPassword.jsx";
 import Layout from "./components/admin/Layout.jsx";
 
-
 // user
 import ResetPassword from "./components/auth/ResetPassword.jsx";
 import ChangePassword from "./components/auth/ChangePassword.jsx";
@@ -18,12 +17,11 @@ import Users from "./components/pages/admin/users/Users.jsx";
 import EditUser from "./components/pages/admin/users/EditUsers.jsx";
 import AdminCreateUser from "./components/pages/admin/users/CreateUser.jsx";
 import ManagePlanners from "./components/pages/admin/users/Planners.jsx";
-import EditPlanner from "./components/pages/admin/users/EditEnginner.jsx";
 import ManageEngineers from "./components/pages/admin/users/Engineers.jsx";
 import EditEngineer from "./components/pages/admin/users/EditEnginner.jsx";
 import ManageStakeholders from "./components/pages/admin/users/Stakeholders.jsx";
 import EditStakeholder from "./components/pages/admin/users/EditStakeholder.jsx";
-import ManageProjects from "./components/pages/admin/project/Projects.jsx"
+import ManageProjects from "./components/pages/admin/project/Projects.jsx";
 import Editproject from "./components/pages/admin/project/EditProject.jsx";
 import ManageProjectsInPlan from "./components/pages/admin/projectUnderPlan/ProjectsInPlan";
 import Planner_Layout from "./components/pages/planner/Layout.jsx";
@@ -36,20 +34,16 @@ import Engineer_Layout from "./components/pages/engineer/Layout.jsx";
 import Enginner_Home from "./components/pages/engineer/Home.jsx";
 import Engineer_Manage_Planned_projects from "./components/pages/engineer/PlannedProjects.jsx";
 import PlannerManageProjectPlans from "./components/pages/planner/MyProjectPlans.jsx";
+import EditPlanner from "./components/pages/admin/users/EditPlanner.jsx";
 
 import StakeholderManageFundedProjects from "./components/pages/stakeholder/MyProjects.jsx";
 import AdminManageStakeholder_Application from "./components/pages/admin/stakeholder_applications.jsx";
-import AdminManageEngineer_Application from "./components/pages/admin/enginner_applications.jsx"
+import AdminManageEngineer_Application from "./components/pages/admin/enginner_applications.jsx";
 import PlannerRegistrationPage from "./components/pages/planner/Registration.jsx";
 import ProjectOwners_ManageProjects from "./components/pages/project_owner/My_Projects.jsx";
 import Project_Owner_Layout from "./components/pages/project_owner/Layout.jsx";
 import EngineerRegistrationPage from "./components/pages/engineer/Engineer_Registration.jsx";
 import StakeholderRegistrationPage from "./components/pages/stakeholder/Registration_page.jsx";
-
-
-
-
-
 
 const App = () => {
   useEffect(() => {
@@ -60,7 +54,6 @@ const App = () => {
       delay: 100,
     });
 
-
     AOS.refresh();
   }, []);
 
@@ -68,27 +61,51 @@ const App = () => {
     <div className="bg-white dark:bg-black dark:text-white text-black overflow-x-hidden">
       <BrowserRouter>
         <Routes>
-
           {/* Home view */}
           <Route path="/" element={<MainLayout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Register />} />
           <Route path="/verifypassword" element={<VerifyPassword />} />
-          <Route path="/passwordreset"  element={<ResetPassword />} />
+          <Route path="/passwordreset" element={<ResetPassword />} />
           <Route path="/changePassword" element={<ChangePassword />} />
 
+          <Route
+            path="/user_registration/planner"
+            element={
+              <PrivateRoute>
+                <PlannerRegistrationPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/user_registration/engineer"
+            element={
+              <PrivateRoute>
+                <EngineerRegistrationPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/user_registration/stakeholder"
+            element={
+              <PrivateRoute>
+                <StakeholderRegistrationPage />
+              </PrivateRoute>
+            }
+          />
 
-          
-          <Route path="/user_registration/planner" element={<PlannerRegistrationPage />} />
-          <Route path="/user_registration/engineer" element={<EngineerRegistrationPage />} />
-          <Route path="/user_registration/stakeholder" element={<StakeholderRegistrationPage />} />
+          {/* End Home view */}
 
-           {/* End Home view */}
+          {/* Admin */}
 
-            {/* Admin */}
-
-
-          <Route path="/admin" element={<PrivateRoute><Layout /></PrivateRoute>} >
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <Layout />
+              </PrivateRoute>
+            }
+          >
             <Route index element={<Home />} />
             <Route path="/admin/users" element={<Users />} />
             <Route path="/admin/createUser" element={<AdminCreateUser />} />
@@ -100,61 +117,97 @@ const App = () => {
             <Route path="/admin/engineers" element={<ManageEngineers />} />
             <Route path="/admin/editengineer/:id" element={<EditEngineer />} />
 
-            <Route path="/admin/stakeholders" element={<ManageStakeholders />} />
-            <Route path="/admin/editStakeholder/:id" element={<EditStakeholder />} />
+            <Route
+              path="/admin/stakeholders"
+              element={<ManageStakeholders />}
+            />
+            <Route
+              path="/admin/editStakeholder/:id"
+              element={<EditStakeholder />}
+            />
 
             <Route path="/admin/projects" element={<ManageProjects />} />
             <Route path="/admin/editProject/:id" element={<Editproject />} />
 
-            <Route path="/admin/plannedProjects" element={<ManageProjectsInPlan />} />
-            <Route path="/admin/stakeholder_applications" element={<AdminManageStakeholder_Application />} />
-            <Route path="/admin/engineerApplications" element={<AdminManageEngineer_Application />} />
-
-  
+            <Route
+              path="/admin/plannedProjects"
+              element={<ManageProjectsInPlan />}
+            />
+            <Route
+              path="/admin/stakeholder_applications"
+              element={<AdminManageStakeholder_Application />}
+            />
+            <Route
+              path="/admin/engineerApplications"
+              element={<AdminManageEngineer_Application />}
+            />
           </Route>
 
-           {/* End of Admin route*/}
+          {/* End of Admin route*/}
 
           {/* Start of Planner routes route*/}
-          <Route path="/project_owner" element={<PrivateRoute><Project_Owner_Layout /></PrivateRoute>} >
-              <Route index element={<ProjectOwners_ManageProjects />} />
-              {/* <Route path="/project_owner/projects" element={<ProjectOwners_ManageProjects />} /> */}
-              
-        
-           </Route>
+          <Route
+            path="/project_owner"
+            element={
+              <PrivateRoute>
+                <Project_Owner_Layout />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<ProjectOwners_ManageProjects />} />
+            {/* <Route path="/project_owner/projects" element={<ProjectOwners_ManageProjects />} /> */}
+          </Route>
 
+          {/* Start of Planner routes route*/}
+          <Route
+            path="/planner"
+            element={
+              <PrivateRoute>
+                <Planner_Layout />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<PlannerHome />} />
+            <Route
+              path="/planner/projects"
+              element={<PlannerManageProjectPlans />}
+            />
+          </Route>
+          {/* Ends of Planner routes route*/}
 
+          {/* Start of Stakeholder routes route*/}
+          <Route
+            path="/stakeholder"
+            element={
+              <PrivateRoute>
+                <Stakeholder_Layout />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<Stakeholer_Home />} />
+            <Route
+              path="/stakeholder/projects"
+              element={<StakeholderManageFundedProjects />}
+            />
+          </Route>
+          {/* Ends of Stakeholder routes route*/}
 
-
-            {/* Start of Planner routes route*/}
-            <Route path="/planner" element={<PrivateRoute><Planner_Layout /></PrivateRoute>} >
-              <Route index element={<PlannerHome />} />
-              <Route path="/planner/projects" element={<PlannerManageProjectPlans />} />
-              
-        
-           </Route>
-           {/* Ends of Planner routes route*/}
-
-           {/* Start of Stakeholder routes route*/}
-           <Route path="/stakeholder" element={<PrivateRoute><Stakeholder_Layout /></PrivateRoute>} >
-              <Route index element={<Stakeholer_Home />} />
-              <Route path="/stakeholder/projects" element={<StakeholderManageFundedProjects />} />
-        
-           </Route>
-           {/* Ends of Stakeholder routes route*/} 
-
-
-           {/* Start of Engineer routes route*/}
-           <Route path="/engineer" element={<PrivateRoute><Engineer_Layout /></PrivateRoute>} >
-              <Route index element={<Enginner_Home />} />
-              <Route path="projects" element={<Engineer_Manage_Planned_projects />} />
-        
-           </Route>
-           {/* Ends of Engineer routes route*/} 
-
-
-
-
+          {/* Start of Engineer routes route*/}
+          <Route
+            path="/engineer"
+            element={
+              <PrivateRoute>
+                <Engineer_Layout />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<Enginner_Home />} />
+            <Route
+              path="projects"
+              element={<Engineer_Manage_Planned_projects />}
+            />
+          </Route>
+          {/* Ends of Engineer routes route*/}
         </Routes>
       </BrowserRouter>
     </div>

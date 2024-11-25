@@ -1,29 +1,31 @@
-// eslint-disable-next-line no-unused-vars
+/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   LockClosedIcon,
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/20/solid";
 import axios from "axios";
-import loginImage from "../../assets/pictures/login.jpeg"; // Assuming the path to the image
+import loginImage from "../../assets/pictures/login.jpeg";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility toggle
-  const [isLoading, setIsLoading] = useState(false); // State for loading
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Updated phone validation function
+  // Phone validation function
   const validatePhone = (phone) => {
     const phoneRegex = /^(078|079|072|073)\d{7}$/;
     return phoneRegex.test(phone);
   };
 
+  // Password validation function
   const validatePassword = (password) => {
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
@@ -40,16 +42,63 @@ const Login = () => {
     );
   };
 
+  // Handle phone input changes
   const handlePhoneInputChange = (e) => {
     const input = e.target.value;
-
     // Only allow numbers in the input
     if (/^\d*$/.test(input)) {
       setPhone(input);
     }
   };
 
-  const handleLogin = (e) => {
+  // Helper function to check if user needs registration
+  const checkRegistrationStatus = async (user) => {
+    try {
+      const token = user.access;
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      // Fetch all required data
+      const [plannersRes, engineersRes, stakeholdersRes] = await Promise.all([
+        axios.get('http://127.0.0.1:8000/planner/planners/', { headers }),
+        axios.get('http://127.0.0.1:8000/engineer/engineers/', { headers }),
+        axios.get('http://127.0.0.1:8000/stakeholder/stakeholders/', { headers })
+      ]);
+
+      const role = user.role.trim().toLowerCase();
+      const userId = user.id;
+
+      switch (role) {
+        case 'planner': {
+          const isRegistered = plannersRes.data.some(
+            planner => planner.created_by.id === userId
+          );
+          return isRegistered ? `/${role}` : '/user_registration/planner';
+        }
+        case 'engineer': {
+          const isRegistered = engineersRes.data.some(
+            engineer => engineer.created_by.id === userId
+          );
+          return isRegistered ? `/${role}` : '/user_registration/engineer';
+        }
+        case 'stakeholder': {
+          const isRegistered = stakeholdersRes.data.some(
+            stakeholder => stakeholder.created_by.id === userId
+          );
+          return isRegistered ? `/${role}` : '/user_registration/stakeholder';
+        }
+        default:
+          return `/${role}`; // For other roles like admin, project_owner
+      }
+    } catch (error) {
+      console.error('Error checking registration status:', error);
+      throw error;
+    }
+  };
+
+  // Handle login submission
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -65,37 +114,36 @@ const Login = () => {
 
     setIsLoading(true);
 
-    axios.post('http://127.0.0.1:8000/login/', { phone, password })
-      .then((res) => {
-        setIsLoading(false);
+    try {
+      const res = await axios.post('http://127.0.0.1:8000/login/', { phone, password });
+      
+      if (res.data) {
+        const user = {
+          id: res.data.user.id,
+          phone: res.data.user.phone,
+          role: res.data.user.role,
+          created_at: res.data.user.created_at,
+          refresh: res.data.refresh,
+          access: res.data.access,
+        };
+
+        localStorage.setItem('userData', JSON.stringify(user));
+        localStorage.setItem('token', res.data.access);
+
+        // Check registration status and get appropriate route
+        const targetRoute = await checkRegistrationStatus(user);
         
-        if (res.data) {
-          const user = {
-            id: res.data.user.id,
-            phone: res.data.user.phone,
-            role: res.data.user.role,
-            created_at: res.data.user.created_at,
-            refresh: res.data.refresh,
-            access: res.data.access,
-          };
-
-          localStorage.setItem('userData', JSON.stringify(user));
-          localStorage.setItem('token', res.data.access);
-
-          const role = user.role.trim().toLowerCase();
-          
-          // Navigate to the attempted path or default route based on role
-          const from = location.state?.from || `/${role}`;
-          navigate(from, { replace: true });
-        }
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        console.error('Error during login:', error.response ? error.response.data : error.message);
-        setError('Invalid phone or password.');
-      });
+        // Navigate to appropriate route
+        const from = location.state?.from || targetRoute;
+        navigate(from, { replace: true });
+      }
+    } catch (error) {
+      console.error('Error during login:', error.response ? error.response.data : error.message);
+      setError('Invalid phone or password.');
+    } finally {
+      setIsLoading(false);
+    }
   };
-
 
   return (
     <div className="flex justify-center items-center min-h-screen h-full bg-gray-50">

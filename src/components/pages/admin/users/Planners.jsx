@@ -283,7 +283,7 @@ function ManagePlanners() {
                 </td>
                 <td className="px-4 py-2 flex space-x-2">
                   <a
-                    href={`/admin/editPlanner/${planner.id}`} // Edit link
+                    href={`/admin/editplanner/${planner.id}`} // Edit link
                     className=" text-blue-600 px-2 py-1 rounded"
                   >
                     Edit

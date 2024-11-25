@@ -4,6 +4,15 @@ import axios from "axios";
 import { Line, Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import "./Home.css"; // Ensure this path is correct
+import {
+  LineChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 function Home() {
   const [totalUsers, setTotalUsers] = useState(0);
@@ -27,21 +36,29 @@ function Home() {
           axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         }
 
-        const engineerRes = await axios.get("http://127.0.0.1:8000/engineer/engineers/");
+        const engineerRes = await axios.get(
+          "http://127.0.0.1:8000/engineer/engineers/"
+        );
         setEngineerData(engineerRes.data);
 
-        const plannerRes = await axios.get("http://127.0.0.1:8000/planner/planners/", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const plannerRes = await axios.get(
+          "http://127.0.0.1:8000/planner/planners/",
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
         setPlannerData(plannerRes.data);
 
         const usersRes = await axios.get("http://127.0.0.1:8000/users/");
         setUsersData(usersRes.data.users);
         setTotalUsers(usersRes.data.users.length);
 
-        const projectRes = await axios.get("http://127.0.0.1:8000/project/projects/", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const projectRes = await axios.get(
+          "http://127.0.0.1:8000/project/projects/",
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
         setProjectData(projectRes.data);
 
         const engineerApplicationRes = await axios.get(
@@ -59,7 +76,12 @@ function Home() {
     fetchData();
   }, []);
 
-  const formatDataForLineChart = (data, dateField = "created_at", categoryField = "role", fill = false) => {
+  const formatDataForLineChart = (
+    data,
+    dateField = "created_at",
+    categoryField = "status",
+    fill = false
+  ) => {
     if (!Array.isArray(data)) {
       console.error("Expected data to be an array", data);
       return {
@@ -73,7 +95,7 @@ function Home() {
 
     data.forEach((item) => {
       const date = new Date(item[dateField]).toLocaleDateString();
-      const category = item[categoryField] || "Undefined";
+      const category = item[categoryField] || "Unknown"; // Use 'Unknown' for missing statuses
 
       if (!categoryCounts[category]) {
         categoryCounts[category] = {};
@@ -90,11 +112,77 @@ function Home() {
       }
     });
 
+    // Ensure each category has data for every date
+    Object.keys(categoryCounts).forEach((category) => {
+      dates.forEach((date) => {
+        if (!categoryCounts[category][date]) {
+          categoryCounts[category][date] = 0;
+        }
+      });
+    });
+
     const datasets = Object.keys(categoryCounts).map((category) => ({
       label: category,
-      data: dates.map((date) => parseInt(categoryCounts[category][date] || 0, 10)),
+      data: dates.map((date) => categoryCounts[category][date]),
+   
+    }));
+
+    return {
+      labels: dates,
+      datasets,
+    };
+  };
+
+  const formatDataForAreaChart = (
+    data,
+    dateField = "created_at",
+    categoryField = "status",
+    fill = false
+  ) => {
+    if (!Array.isArray(data)) {
+      console.error("Expected data to be an array", data);
+      return {
+        labels: [],
+        datasets: [],
+      };
+    }
+
+    const categoryCounts = {};
+    const dates = [];
+
+    data.forEach((item) => {
+      const date = new Date(item[dateField]).toLocaleDateString();
+      const category = item[categoryField] || "Unknown"; // Use 'Unknown' for missing statuses
+
+      if (!categoryCounts[category]) {
+        categoryCounts[category] = {};
+      }
+
+      if (!categoryCounts[category][date]) {
+        categoryCounts[category][date] = 0;
+      }
+
+      categoryCounts[category][date] += 1;
+
+      if (!dates.includes(date)) {
+        dates.push(date);
+      }
+    });
+
+    // Ensure each category has data for every date
+    Object.keys(categoryCounts).forEach((category) => {
+      dates.forEach((date) => {
+        if (!categoryCounts[category][date]) {
+          categoryCounts[category][date] = 0;
+        }
+      });
+    });
+
+    const datasets = Object.keys(categoryCounts).map((category) => ({
+      label: category,
+      data: dates.map((date) => categoryCounts[category][date]),
       borderColor: getRandomColor(),
-      backgroundColor: fill ? getRandomColor() + "33" : "transparent", // 33 adds transparency for filled area
+      backgroundColor: fill ? getRandomColor() + "33" : "transparent",
       fill: fill,
     }));
 
@@ -115,7 +203,9 @@ function Home() {
 
   const formatDataForHistogram = (data) => {
     const labels = [...new Set(data.map((item) => item.status))];
-    const counts = labels.map((label) => data.filter((item) => item.status === label).length);
+    const counts = labels.map(
+      (label) => data.filter((item) => item.status === label).length
+    );
 
     return {
       labels,
@@ -146,7 +236,9 @@ function Home() {
 
   return (
     <div className="mt-20">
-      <h2 className="text-lg font-semibold mb-4 text-center text-black">Reports</h2>
+      <h2 className="text-lg font-semibold mb-4 text-center text-black">
+        Reports
+      </h2>
 
       <div className="chart-container">
         <div>
@@ -154,60 +246,39 @@ function Home() {
             Users Over Time by Role (Area Chart)
           </h3>
           <Line
-            data={formatDataForLineChart(usersData, "created_at", "role", true)} // Fill set to true for area chart
+            data={formatDataForAreaChart(usersData, "created_at", "role", true)}
             options={{
               scales: {
+                x: {
+                  stacked: true, // Enable stacking for x-axis if relevant
+                },
                 y: {
                   beginAtZero: true,
+                  stacked: true, // Enable stacking for y-axis
                   ticks: {
-                    stepSize: 1,
-                    callback: (value) => (Number.isInteger(value) ? value : null),
+                    stepSize: 0,
+                    callback: (value) =>
+                      Number.isInteger(value) ? value : null,
                   },
+                },
+              },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "top",
+                },
+              },
+              elements: {
+                line: {
+                  tension: 0.4, // Smooth out lines
+                },
+                point: {
+                  radius: 3,
                 },
               },
             }}
           />
         </div>
-
-        {/* <div className="w-1/2 h-min">
-          <h3 className="text-md font-semibold text-black mb-2 text-center">
-            Planners Over Time by Status
-          </h3>
-          <Line
-            data={formatDataForLineChart(plannerData, "created_at", "status")}
-            options={{
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    stepSize: 1,
-                    callback: (value) => (Number.isInteger(value) ? value : null),
-                  },
-                },
-              },
-            }}
-          />
-        </div>
-
-        <div className="w-1/2 h-min">
-          <h3 className="text-md font-semibold text-black mb-2 text-center">
-            Engineers Over Time by Status
-          </h3>
-          <Line
-            data={formatDataForLineChart(enginnerData, "created_at", "status")}
-            options={{
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    stepSize: 1,
-                    callback: (value) => (Number.isInteger(value) ? value : null),
-                  },
-                },
-              },
-            }}
-          />
-        </div> */}
 
         <div className="w-1/2 h-min">
           <h3 className="text-md font-semibold text-black mb-2 text-center">
@@ -216,20 +287,37 @@ function Home() {
           <Bar data={formatDataForHistogram(projectData)} />
         </div>
 
-        <div className="w-1/2 h-min">
+        <div>
           <h3 className="text-md font-semibold text-black mb-2 text-center">
             Projects Over Time by Status
           </h3>
           <Line
-            data={formatDataForLineChart(projectData, "created_at", "status")}
+            data={formatDataForLineChart(projectData, "created_at", "status", true)}
             options={{
               scales: {
+                
                 y: {
                   beginAtZero: true,
+                  
                   ticks: {
-                    stepSize: 1,
-                    callback: (value) => (Number.isInteger(value) ? value : null),
+                    stepSize: 0,
+                    callback: (value) =>
+                      Number.isInteger(value) ? value : null,
                   },
+                },
+              },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "top",
+                },
+              },
+              elements: {
+                line: {
+                  tension: 0.4, // Smooth out lines
+                },
+                point: {
+                  radius: 3,
                 },
               },
             }}
